@@ -1,3 +1,5 @@
+using Core.AssetManagement.External;
+using Core.AssetManagement.Runtime;
 using Core.Scene.External;
 using Core.Scene.Runtime;
 using UnityEngine;
@@ -12,6 +14,7 @@ namespace Core.Installers
             LogDebug("Installing global services...");
             
             InstallSceneController();
+            InstallAssetLoader();
 
             LogDebug("Global services installed successfully");
         }
@@ -25,6 +28,15 @@ namespace Core.Installers
                 .NonLazy();
 
             LogDebug("SceneController bound successfully");
+        }
+        
+        private void InstallAssetLoader()
+        {
+            Container.Bind<IAssetLoader>()
+                .To<AssetLoader>()
+                .AsSingle();
+                
+            LogDebug("AssetLoader bound successfully");
         }
         
         private void LogDebug(string message)

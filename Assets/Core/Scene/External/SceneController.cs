@@ -21,8 +21,6 @@ namespace Core.Scene.External
 
         void Awake()
         {
-            DontDestroyOnLoad(gameObject);
-
             QualitySettings.vSyncCount = 0;
             Application.targetFrameRate = 60;
 
