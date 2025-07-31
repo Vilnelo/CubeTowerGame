@@ -1,11 +1,12 @@
 ﻿using Core.AssetManagement.Runtime;
 using Core.Canvases.Runtime;
+using Core.UI.Runtime;
 using UnityEngine;
 using Zenject;
 
 namespace Core.UI.External
 {
-    public class CoreUIController : IInitializable
+    public class CoreUIController : ICoreUIController, IInitializable
     {
         [Inject] private IAssetLoader m_AssetLoader;
         [Inject] private IMainCanvas m_MainCanvas;

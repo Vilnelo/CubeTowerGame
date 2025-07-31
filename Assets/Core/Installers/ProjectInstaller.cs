@@ -1,5 +1,7 @@
 using Core.AssetManagement.External;
 using Core.AssetManagement.Runtime;
+using Core.ConfigSystem.External;
+using Core.ConfigSystem.Runtime;
 using Core.Scene.External;
 using Core.Scene.Runtime;
 using UnityEngine;
@@ -15,6 +17,7 @@ namespace Core.Installers
             
             InstallSceneController();
             InstallAssetLoader();
+            InstallConfigSystem();
 
             LogDebug("Global services installed successfully");
         }
@@ -37,6 +40,19 @@ namespace Core.Installers
                 .AsSingle();
                 
             LogDebug("AssetLoader bound successfully");
+        }
+        
+        private void InstallConfigSystem()
+        {
+            Container.Bind<IConfigReader>()
+                .To<ConfigReader>()
+                .AsSingle();
+            
+            Container.Bind<IConfigLoader>()
+                .To<ConfigLoader>()
+                .AsSingle();
+                
+            LogDebug("ConfigSystem bound successfully");
         }
         
         private void LogDebug(string message)

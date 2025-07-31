@@ -1,3 +1,4 @@
+using Core.BottomBlocks.External;
 using Core.Canvases.External;
 using Core.UI.External;
 using UnityEngine;
@@ -19,19 +20,19 @@ namespace Core.Installers
                 .AsSingle()
                 .NonLazy();
             
+            Container.BindInterfacesTo<LayoutUIController>()
+                .AsSingle();
+            
+            Container.BindInterfacesTo<BottomBlocksController>()
+                .AsSingle();
+            
             /*Container.BindInterfacesTo<TrashHoleController>()
                 .AsSingle();
 
             Container.BindInterfacesTo<TowerController>()
                 .AsSingle();
 
-            Container.BindInterfacesTo<BottomController>()
-                .AsSingle();*/
-
-            /*// Оркестратор игры (координирует все фичи)
-            Container.BindInterfacesTo<GameOrchestrator>()
-                .AsSingle();
-                */
+        */
 
             Debug.Log("CoreSceneGameInstaller: Core scene services installed successfully");
         }

@@ -1,0 +1,104 @@
+{
+  "cubes": [
+    {
+      "id": 1,
+      "color_name": "dark_red",
+      "sprite_name": "Block1"
+    },
+    {
+      "id": 2,
+      "color_name": "red",
+      "sprite_name": "Block2"
+    },
+    {
+      "id": 3,
+      "color_name": "orange",
+      "sprite_name": "Block3"
+    },
+    {
+      "id": 4,
+      "color_name": "yellow",
+      "sprite_name": "Block4"
+    },
+    {
+      "id": 5,
+      "color_name": "green",
+      "sprite_name": "Block5"
+    },
+    {
+      "id": 6,
+      "color_name": "light_blue",
+      "sprite_name": "Block6"
+    },
+    {
+      "id": 7,
+      "color_name": "blue",
+      "sprite_name": "Block7"
+    },
+    {
+      "id": 8,
+      "color_name": "purple",
+      "sprite_name": "Block8"
+    },
+    {
+      "id": 9,
+      "color_name": "gray",
+      "sprite_name": "Block9"
+    },
+    {
+      "id": 10,
+      "color_name": "brown",
+      "sprite_name": "Block10"
+    },
+    {
+      "id": 11,
+      "color_name": "dark_brown",
+      "sprite_name": "Block11"
+    },
+    {
+      "id": 12,
+      "color_name": "magenta",
+      "sprite_name": "Block12"
+    },
+    {
+      "id": 13,
+      "color_name": "lime",
+      "sprite_name": "Block13"
+    },
+    {
+      "id": 14,
+      "color_name": "cyan",
+      "sprite_name": "Block14"
+    },
+    {
+      "id": 15,
+      "color_name": "cream",
+      "sprite_name": "Block15"
+    },
+    {
+      "id": 16,
+      "color_name": "light_purple",
+      "sprite_name": "Block16"
+    },
+    {
+      "id": 17,
+      "color_name": "pink",
+      "sprite_name": "Block17"
+    },
+    {
+      "id": 18,
+      "color_name": "lavender",
+      "sprite_name": "Block18"
+    },
+    {
+      "id": 19,
+      "color_name": "light_cyan",
+      "sprite_name": "Block19"
+    },
+    {
+      "id": 20,
+      "color_name": "dark_red_alt",
+      "sprite_name": "Block20"
+    }
+  ]
+}

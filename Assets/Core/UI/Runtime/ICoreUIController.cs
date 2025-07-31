@@ -1,7 +1,9 @@
-﻿namespace Core.UI.Runtime
+﻿using Core.UI.External;
+
+namespace Core.UI.Runtime
 {
-    public class ICoreUIController
+    public interface ICoreUIController
     {
-        
+        CoreUIView GetCoreView();
     }
 }
