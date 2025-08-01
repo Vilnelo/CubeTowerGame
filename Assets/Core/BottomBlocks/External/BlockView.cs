@@ -1,13 +1,15 @@
 ﻿using Core.BottomBlocks.Runtime.Dto;
+using Core.DragAndDrop.External;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Core.BottomBlocks.External
 {
-    public class BottomBlockView : MonoBehaviour
+    public class BlockView : MonoBehaviour
     {
         [SerializeField] private Image m_BlockSprite;
-        [SerializeField] private LayoutElement m_LayoutElement;
+        [SerializeField] private RectTransform m_LayoutElement;
+        [SerializeField] private DraggableBlockController m_DraggableBlockController;
         
         private string m_ColorName;
         private int m_Id;
@@ -16,7 +18,8 @@ namespace Core.BottomBlocks.External
         {
             m_Id = config.Id;
             m_ColorName = config.ColorName;
-
+            m_DraggableBlockController.Init();
+            
             Debug.Log($"BottomBlockView: Setup block {m_ColorName} #{m_Id}");
         }
 
@@ -25,9 +28,29 @@ namespace Core.BottomBlocks.External
             return m_ColorName;
         }
 
+        public RectTransform GetRectTransform()
+        {
+            return m_LayoutElement;
+        }
+
+        public Image GetBlockSprite()
+        {
+            return m_BlockSprite;
+        }
+
+        public GameObject GetBlockPrefab()
+        {
+            return gameObject;
+        }
+
         public int GetId()
         {
             return m_Id;
+        }
+
+        public DraggableBlockController GetDraggableBlockController()
+        {
+            return m_DraggableBlockController;
         }
 
         public void SetImage(Sprite sprite)
@@ -42,15 +65,7 @@ namespace Core.BottomBlocks.External
 
         public void SetSize(float width, float height)
         {
-            if (m_LayoutElement != null)
-            {
-                m_LayoutElement.preferredWidth = width;
-                m_LayoutElement.preferredHeight = height;
-                m_LayoutElement.minWidth = width;
-                m_LayoutElement.minHeight = height;
-                
-                Debug.Log($"BottomBlockView: Set Layout Element size to {width:F2}x{height:F2} for block {m_ColorName}");
-            }
+            m_LayoutElement.sizeDelta = new Vector2(width, height);
         }
     }
 }

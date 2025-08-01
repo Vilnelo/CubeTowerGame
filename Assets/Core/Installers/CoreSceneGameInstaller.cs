@@ -1,5 +1,7 @@
 using Core.BottomBlocks.External;
 using Core.Canvases.External;
+using Core.DragAndDrop.External;
+using Core.InputSystem.External;
 using Core.UI.External;
 using UnityEngine;
 using Zenject;
@@ -25,6 +27,17 @@ namespace Core.Installers
             
             Container.BindInterfacesTo<BottomBlocksController>()
                 .AsSingle();
+            
+            Container.BindInterfacesTo<InputManager>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
+            
+            Container.BindInterfacesTo<DragAndDropController>()
+                .AsSingle()
+                .NonLazy();
+            
+            
             
             /*Container.BindInterfacesTo<TrashHoleController>()
                 .AsSingle();

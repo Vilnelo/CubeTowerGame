@@ -1,6 +1,7 @@
 ﻿using Core.AssetManagement.Runtime;
 using Core.BottomBlocks.Runtime.Dto;
 using Core.ConfigSystem.Runtime;
+using Core.DragAndDrop.Runtime;
 using Core.UI.Runtime;
 using UnityEngine;
 using Zenject;
@@ -18,6 +19,7 @@ namespace Core.BottomBlocks.External
         private const string m_BottomBlockViewKey = "BottomBlockView";
         
         private BottomBlocksView m_View;
+        private ScrollBlocker m_ScrollBlocker = new ScrollBlocker();
         private CubesDto m_CubesDto;
         
         public void Initialize()
@@ -36,7 +38,10 @@ namespace Core.BottomBlocks.External
                 return;
             }
             
+            m_ScrollBlocker.Init(m_View.GetScrollRect());
+            
             Debug.Log($"BottomBlocksController: Loaded {cubesConfig.Cubes.Count} cubes configuration");
+            
             CreateBlocksFromConfig(cubesConfig);
         }
         
@@ -78,7 +83,7 @@ namespace Core.BottomBlocks.External
         {
             try
             {
-                var blockView = m_AssetLoader.InstantiateSync<BottomBlockView>(
+                var blockView = m_AssetLoader.InstantiateSync<BlockView>(
                     m_BottomBlockViewKey, 
                     m_View.GetScrollContent()
                 );
@@ -89,6 +94,8 @@ namespace Core.BottomBlocks.External
                     
                     LoadAndSetSprite(blockView, cubeConfig.SpriteName);
                     
+                    blockView.GetDraggableBlockController().SetDragType(DragType.Clone);
+                    
                     SetupBlockWithLayout(blockView, cubeConfig);
                 }
             }
@@ -98,7 +105,7 @@ namespace Core.BottomBlocks.External
             }
         }
         
-        private void LoadAndSetSprite(BottomBlockView blockView, string spriteName)
+        private void LoadAndSetSprite(BlockView blockView, string spriteName)
         {
             try
             {
@@ -120,7 +127,7 @@ namespace Core.BottomBlocks.External
             }
         }
         
-        private void SetupBlockWithLayout(BottomBlockView blockView, CubeDto config)
+        private void SetupBlockWithLayout(BlockView blockView, CubeDto config)
         {
             float blockSize = m_LayoutUIController.GetCubeSize();
             blockView.SetSize(blockSize);
