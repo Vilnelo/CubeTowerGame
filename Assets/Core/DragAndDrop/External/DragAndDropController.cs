@@ -8,6 +8,7 @@ using Core.Canvases.External;
 using Core.Canvases.Runtime;
 using Core.DragAndDrop.Runtime;
 using Core.InputSystem.External;
+using Core.UI.External;
 using Core.UI.Runtime;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -21,7 +22,7 @@ namespace Core.DragAndDrop.External
 {
     public class DragAndDropController : IInitializable, IDisposable
     {
-        [Inject] private IMainCanvas m_Canvas;
+        [Inject] private ICoreUIController m_CoreUIController;
         [Inject] private ITimerController m_TimerController;
 
         private GameObject m_CurrentDraggedObject;
@@ -127,6 +128,7 @@ namespace Core.DragAndDrop.External
                 m_CurrentDraggedObject = m_CurrentBlockView.GetDraggableBlockController().GetGameObject();
             }
 
+            m_CurrentDraggedObject.transform.SetAsLastSibling();
             m_PickUpAnimation.Initialize(m_CurrentBlockView.GetRectTransform());
             m_PickUpAnimation.ScaleUp();
             
@@ -212,7 +214,7 @@ namespace Core.DragAndDrop.External
             var draggedBlockView = Object.Instantiate(originalBlock.GetBlockPrefab(), 
                 originalBlock.GetRectTransform().position,
                 originalBlock.GetRectTransform().rotation, 
-                m_Canvas.GetTransform());
+                m_CoreUIController.GetCoreView().DraggingBlockView);
             
             if (draggedBlockView != null)
             {
