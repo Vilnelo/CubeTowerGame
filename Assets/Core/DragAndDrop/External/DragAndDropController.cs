@@ -8,6 +8,7 @@ using Core.Canvases.External;
 using Core.Canvases.Runtime;
 using Core.DragAndDrop.Runtime;
 using Core.InputSystem.External;
+using Core.TrashHole.Runtime;
 using Core.UI.External;
 using Core.UI.Runtime;
 using UnityEngine;
@@ -24,6 +25,7 @@ namespace Core.DragAndDrop.External
     {
         [Inject] private ICoreUIController m_CoreUIController;
         [Inject] private ITimerController m_TimerController;
+        [Inject] private ITrashHoleController m_TrashHoleController;
 
         private GameObject m_CurrentDraggedObject;
         private Camera m_MainCamera;
@@ -247,9 +249,25 @@ namespace Core.DragAndDrop.External
         {
             if (m_CurrentBlockView.GetDraggableBlockController() != null)
             {
-                m_CurrentBlockView.GetDraggableBlockController() .OnDragEnd(endPosition);
-                
-                //TODO: Тут проверка на область в которой закончили движение и реакцию остального проекта
+                bool shouldDestroy = false;
+                if (m_CurrentDraggedObject != null)
+                {
+                    RectTransform blockRect = m_CurrentBlockView.GetRectTransform();
+                    if (blockRect != null && m_TrashHoleController.IsBlockTouchingHole(blockRect))
+                    {
+                        shouldDestroy = true;
+                        Debug.Log("DragAndDropSystem: Block is touching trash hole - will be destroyed");
+                    }
+                }
+                if (shouldDestroy)
+                {
+                    m_TrashHoleController.DestroyBlockInHole(m_CurrentDraggedObject);
+                }
+                else
+                {
+                    m_CurrentBlockView.GetDraggableBlockController().OnDragEnd(endPosition);
+                    // TODO: Тут проверка на другие области в которых закончили движение и реакцию остального проекта
+                }
             }
             
             Debug.Log("DragAndDropSystem: Finished dragging");

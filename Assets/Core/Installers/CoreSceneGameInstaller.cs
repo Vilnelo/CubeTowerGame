@@ -2,6 +2,7 @@ using Core.BottomBlocks.External;
 using Core.Canvases.External;
 using Core.DragAndDrop.External;
 using Core.InputSystem.External;
+using Core.TrashHole.External;
 using Core.UI.External;
 using UnityEngine;
 using Zenject;
@@ -22,6 +23,9 @@ namespace Core.Installers
                 .AsSingle()
                 .NonLazy();
             
+            Container.BindInterfacesAndSelfTo<TrashHoleController>()
+                .AsSingle();
+            
             Container.BindInterfacesTo<LayoutUIController>()
                 .AsSingle();
             
@@ -36,16 +40,6 @@ namespace Core.Installers
             Container.BindInterfacesTo<DragAndDropController>()
                 .AsSingle()
                 .NonLazy();
-            
-            
-            
-            /*Container.BindInterfacesTo<TrashHoleController>()
-                .AsSingle();
-
-            Container.BindInterfacesTo<TowerController>()
-                .AsSingle();
-
-        */
 
             Debug.Log("CoreSceneGameInstaller: Core scene services installed successfully");
         }
