@@ -14,29 +14,29 @@ namespace Core.Installers
         public override void InstallBindings()
         {
             Debug.Log("CoreSceneGameInstaller: Installing core scene services...");
-            
+
             Container.BindInterfacesTo<MainCanvas>()
                 .FromComponentInHierarchy()
                 .AsSingle();
-            
+
             Container.BindInterfacesTo<CoreUIController>()
                 .AsSingle()
                 .NonLazy();
-            
+
             Container.BindInterfacesAndSelfTo<TrashHoleController>()
                 .AsSingle();
-            
+
             Container.BindInterfacesTo<LayoutUIController>()
                 .AsSingle();
-            
+
             Container.BindInterfacesTo<BottomBlocksController>()
                 .AsSingle();
-            
+
             Container.BindInterfacesTo<InputManager>()
                 .FromNewComponentOnNewGameObject()
                 .AsSingle()
                 .NonLazy();
-            
+
             Container.BindInterfacesTo<DragAndDropController>()
                 .AsSingle()
                 .NonLazy();

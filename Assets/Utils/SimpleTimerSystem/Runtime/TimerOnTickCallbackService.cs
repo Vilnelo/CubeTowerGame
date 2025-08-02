@@ -6,7 +6,7 @@ namespace Utils.SimpleTimerSystem.Runtime
     {
         private readonly Action<SimpleTimerInfo> m_OnTickAction;
         private readonly float m_Interval;
-        
+
         private float m_TimeElapsed = 0;
 
         public TimerOnTickCallbackService(Action<SimpleTimerInfo> onTickAction, float interval = 0.5f)
@@ -19,7 +19,7 @@ namespace Utils.SimpleTimerSystem.Runtime
         {
             m_TimeElapsed = 0;
         }
-        
+
         public void ResetTime()
         {
             m_TimeElapsed = 0;

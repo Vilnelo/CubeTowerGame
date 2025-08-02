@@ -7,12 +7,12 @@ namespace Core.UI.External
     public class LayoutUIController : ILayoutUIController, IInitializable
     {
         [Inject] private ICoreUIController m_CoreUIController;
-        
+
         private const int MAX_CUBES_IN_TOWER = 7;
 
         private float m_CubeWidth;
         private float m_CubeHeight;
-        
+
         public void Initialize()
         {
             Debug.Log("LayoutUIController: Initialized");
@@ -22,8 +22,8 @@ namespace Core.UI.External
         public float GetCubeSize()
         {
             return Mathf.Min(m_CubeWidth, m_CubeHeight);
-        } 
-        
+        }
+
         public float GetCubeWidth()
         {
             return m_CubeWidth;
@@ -58,9 +58,9 @@ namespace Core.UI.External
             }
 
             CalculateCubeSizeFromTowerArea();
-            
+
             Debug.Log($"LayoutUIController: Calculated - CubeWidth: {m_CubeWidth:F2}, " +
-                     $"CubeHeight: {m_CubeHeight:F2}, Square Size: {GetCubeSize():F2}");
+                      $"CubeHeight: {m_CubeHeight:F2}, Square Size: {GetCubeSize():F2}");
         }
 
         private void CalculateCubeSizeFromTowerArea()
@@ -72,25 +72,25 @@ namespace Core.UI.External
                 Debug.LogError("LayoutUIController: TowerView has no RectTransform!");
                 return;
             }
-            
+
             Rect towerArea = towerRect.rect;
             float towerWidth = towerArea.width;
             float towerHeight = towerArea.height;
 
             Debug.Log($"LayoutUIController: Tower area size - Width: {towerWidth:F2}, Height: {towerHeight:F2}");
-            
+
             CalculateCubeDimensions(towerHeight);
         }
 
         private void CalculateCubeDimensions(float towerHeight)
         {
             float calculatedHeight = towerHeight / MAX_CUBES_IN_TOWER;
-            
+
             m_CubeHeight = calculatedHeight;
             m_CubeWidth = calculatedHeight;
 
             Debug.Log($"LayoutUIController: Cube dimensions - " +
-                     $"Width: {m_CubeWidth:F2}, Height: {m_CubeHeight:F2}");
+                      $"Width: {m_CubeWidth:F2}, Height: {m_CubeHeight:F2}");
         }
     }
 }

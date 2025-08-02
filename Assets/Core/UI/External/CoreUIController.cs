@@ -10,11 +10,11 @@ namespace Core.UI.External
     {
         [Inject] private IAssetLoader m_AssetLoader;
         [Inject] private IMainCanvas m_MainCanvas;
-        
+
         public const string m_CoreUIPrefabAddress = "CoreUIView";
 
         private CoreUIView m_CoreUIView;
-        
+
         public void Initialize()
         {
             Debug.Log("CoreUIController: Initializing...");
@@ -25,7 +25,7 @@ namespace Core.UI.External
         {
             return m_CoreUIView;
         }
-        
+
         private void LoadCoreUI()
         {
             try

@@ -11,7 +11,7 @@ namespace Core.Installers
             Container.BindInterfacesTo<MainCanvas>()
                 .FromComponentInHierarchy()
                 .AsSingle();
-            
+
             Container.BindInterfacesTo<StartSceneController>()
                 .FromComponentInHierarchy()
                 .AsSingle();
