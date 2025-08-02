@@ -10,6 +10,7 @@ namespace Core.Animations.External
         private Canvas m_Canvas;
         private Vector3 m_StartPosition;
         private Vector3 m_TargetPosition;
+        private Action m_OnStartFallAnimation;
         private Action m_OnCompleteCallback;
         
         private Sequence m_AnimationSequence;
@@ -18,7 +19,7 @@ namespace Core.Animations.External
         private const float m_RotationSpeed = 180f;
         private const float m_ScaleDownFactor = 0.6f;
         
-        public void StartFallAnimation(GameObject objectToAnimate, Vector3 holeCenter, Canvas canvas, Action onComplete = null)
+        public void StartFallAnimation(GameObject objectToAnimate, Vector3 holeCenter, Canvas canvas, Action onStart = null, Action onComplete = null)
         {
             if (objectToAnimate == null)
             {
@@ -51,6 +52,8 @@ namespace Core.Animations.External
             StopAnimation();
             
             m_AnimationSequence = DOTween.Sequence();
+
+            OnAnimationStart();
             
             AnimateTrajectory();
             AnimateRotation();
@@ -155,6 +158,11 @@ namespace Core.Animations.External
                 m_AnimatedObject.transform.DOScale(targetScale, m_AnimationDuration * 0.4f)
                     .SetEase(Ease.InQuad)
             );
+        }
+        
+        private void OnAnimationStart()
+        {
+            m_OnStartFallAnimation?.Invoke();
         }
         
         private void OnAnimationComplete()

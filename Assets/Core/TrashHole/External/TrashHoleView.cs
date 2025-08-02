@@ -9,7 +9,6 @@ namespace Core.TrashHole.External
         [SerializeField] private RectTransform m_TrashHole;
         [SerializeField] private bool m_ShowDebugGizmos = true;
         [SerializeField] private float m_OvalSizeMultiplier = 1.01f;
-        [SerializeField] private SimpleHoleMask m_SimpleMask;
 
         public RectTransform GetTrashHoleRect()
         {
@@ -40,11 +39,6 @@ namespace Core.TrashHole.External
         public Image GetTrashHoleImage()
         {
             return m_TrashHoleImage;
-        }
-
-        public SimpleHoleMask GetSimpleMask()
-        {
-            return m_SimpleMask;
         }
     }
 }

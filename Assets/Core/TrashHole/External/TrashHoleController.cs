@@ -16,13 +16,10 @@ namespace Core.TrashHole.External
         
         private TrashHoleView m_TrashHoleView;
         private TrashHoleDetector m_TrashHoleDetector;
-        private SimpleHoleMask  m_SimpleMask;
         
         public void Initialize()
         {
             InitializeTrashHole();
-            m_SimpleMask = m_TrashHoleView.GetSimpleMask();
-            m_SimpleMask.Init();
             
             Debug.Log("TrashHoleController: Initialized");
         }
@@ -79,6 +76,9 @@ namespace Core.TrashHole.External
             
             // Запускаем анимацию с callback на уничтожение
             fallAnimation.StartFallAnimation(block, holeBottomWorldPosition, m_MainCanvas.GetCanvas(), () =>
+            {
+               
+            }, () =>
             {
                 // Этот callback вызовется когда анимация закончится
                 Debug.Log($"TrashHoleController: Animation completed, destroying block {block.name}");
