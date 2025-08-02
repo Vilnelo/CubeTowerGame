@@ -73,5 +73,10 @@ namespace Core.TrashHole.External
         {
             return m_TrashHoleRect.TransformPoint(m_TrashHoleRect.rect.center);
         }
+        
+        public Vector3 GetHoleBottomWorldPosition()
+        {
+            return m_TrashHoleRect.TransformPoint(new Vector3(0, m_TrashHoleRect.rect.yMin, 0));
+        }
     }
 }

@@ -1,4 +1,6 @@
-﻿using Core.TrashHole.Runtime;
+﻿using Core.Animations.External;
+using Core.Canvases.Runtime;
+using Core.TrashHole.Runtime;
 using Core.UI.External;
 using Core.UI.Runtime;
 using UnityEngine;
@@ -10,13 +12,18 @@ namespace Core.TrashHole.External
     public class TrashHoleController : ITrashHoleController, IInitializable
     {
         [Inject] private ICoreUIController m_CoreUIController;
+        [Inject] private IMainCanvas m_MainCanvas;
         
         private TrashHoleView m_TrashHoleView;
         private TrashHoleDetector m_TrashHoleDetector;
+        private SimpleHoleMask  m_SimpleMask;
         
         public void Initialize()
         {
             InitializeTrashHole();
+            m_SimpleMask = m_TrashHoleView.GetSimpleMask();
+            m_SimpleMask.Init();
+            
             Debug.Log("TrashHoleController: Initialized");
         }
         
@@ -48,7 +55,7 @@ namespace Core.TrashHole.External
             return m_TrashHoleDetector.IsBlockTouchingHole(blockRect);
         }
         
-        public Vector3 GetHoleCenterWorldPosition()
+        public Vector3 GetHoleBottomWorldPosition()
         {
             if (m_TrashHoleDetector == null)
             {
@@ -56,7 +63,7 @@ namespace Core.TrashHole.External
                 return Vector3.zero;
             }
             
-            return m_TrashHoleDetector.GetHoleCenterWorldPosition();
+            return m_TrashHoleDetector.GetHoleBottomWorldPosition();
         }
         
         public void DestroyBlockInHole(GameObject block)
@@ -64,12 +71,26 @@ namespace Core.TrashHole.External
             if (block == null)
                 return;
                 
-            Debug.Log($"TrashHoleController: Destroying block {block.name}");
+            Debug.Log($"TrashHoleController: Starting fall animation for block {block.name}");
             
-            // TODO: Здесь добавить анимацию падения в яму
-            // Например: StartFallAnimation(block);
+            // Создаем анимацию падения в яму
+            var fallAnimation = new TrashHoleFallAnimation();
+            Vector3 holeBottomWorldPosition = GetHoleBottomWorldPosition();
             
-            Object.Destroy(block);
+            // Запускаем анимацию с callback на уничтожение
+            fallAnimation.StartFallAnimation(block, holeBottomWorldPosition, m_MainCanvas.GetCanvas(), () =>
+            {
+                // Этот callback вызовется когда анимация закончится
+                Debug.Log($"TrashHoleController: Animation completed, destroying block {block.name}");
+                
+                if (block != null)
+                {
+                    Object.Destroy(block);
+                }
+                
+                // Освобождаем ресурсы анимации
+                fallAnimation.Dispose();
+            });
         }
     }
 }
