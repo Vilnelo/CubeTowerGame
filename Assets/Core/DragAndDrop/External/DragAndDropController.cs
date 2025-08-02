@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using Core.Animations.External;
 using Core.AssetManagement.Runtime;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
@@ -24,12 +25,13 @@ namespace Core.DragAndDrop.External
         [Inject] private ITimerController m_TimerController;
 
         private GameObject m_CurrentDraggedObject;
-        private IDraggable m_CurrentDraggable;
         private Camera m_MainCamera;
         private SimpleTimerWrapper m_CountdownTimer;
         private BlockView m_CurrentBlockView;
         private bool m_IsWaitingForPickup = false;
         private bool m_IsDragging = false;
+        
+        private PickUpAnimation m_PickUpAnimation = new PickUpAnimation();
         
         private const float m_LerpForce = 10f;
         private const float m_DelayTime = 0.3f;
@@ -78,7 +80,7 @@ namespace Core.DragAndDrop.External
             if (m_IsWaitingForPickup && m_CurrentBlockView != null)
             {
                 ScrollEvents.RequestBlockScroll();
-                PickupBlock(m_CurrentBlockView);
+                PickUpBlock(m_CurrentBlockView);
                 m_IsWaitingForPickup = false;
                 Debug.Log("DragAndDropSystem: Timer completed - block picked up and scroll blocked");
             }
@@ -102,7 +104,7 @@ namespace Core.DragAndDrop.External
             if (dragBehavior == DragType.Move)
             {
                 ScrollEvents.RequestBlockScroll();
-                PickupBlock(blockView);
+                PickUpBlock(blockView);
                 Debug.Log("DragAndDropSystem: Move block picked up immediately");
             }
             else if (dragBehavior == DragType.Clone)
@@ -112,11 +114,9 @@ namespace Core.DragAndDrop.External
             }
         }
         
-        private void PickupBlock(BlockView blockView)
+        private void PickUpBlock(BlockView blockView)
         {
-            m_CurrentDraggable = blockView.GetDraggableBlockController();
-            
-            var dragBehavior = m_CurrentDraggable.GetDragBehavior();
+            var dragBehavior = m_CurrentBlockView.GetDraggableBlockController().GetDragBehavior();
             
             if (dragBehavior == DragType.Clone)
             {
@@ -124,10 +124,13 @@ namespace Core.DragAndDrop.External
             }
             else if (dragBehavior == DragType.Move)
             {
-                m_CurrentDraggedObject = m_CurrentDraggable.GetGameObject();
+                m_CurrentDraggedObject = m_CurrentBlockView.GetDraggableBlockController().GetGameObject();
             }
+
+            m_PickUpAnimation.Initialize(m_CurrentBlockView.GetRectTransform());
+            m_PickUpAnimation.ScaleUp();
             
-            m_CurrentDraggable.OnDragStart();
+            m_CurrentBlockView.GetDraggableBlockController() .OnDragStart();
             m_IsDragging = true;
         }
         
@@ -162,6 +165,8 @@ namespace Core.DragAndDrop.External
             if (m_CurrentDraggedObject != null && m_IsDragging)
             {
                 FinishDragging(worldPosition);
+                
+                m_PickUpAnimation.ScaleDown();
             }
             
             ScrollEvents.RequestUnblockScroll();
@@ -173,7 +178,6 @@ namespace Core.DragAndDrop.External
         {
             m_CurrentBlockView = null;
             m_CurrentDraggedObject = null;
-            m_CurrentDraggable = null;
             m_IsDragging = false;
             m_IsWaitingForPickup = false;
         }
@@ -213,12 +217,14 @@ namespace Core.DragAndDrop.External
             if (draggedBlockView != null)
             {
                 m_CurrentDraggedObject = draggedBlockView;
-                if (!draggedBlockView.TryGetComponent<IDraggable>(out var draggable))
+                
+                if (!draggedBlockView.TryGetComponent<BlockView>(out var newBlockView))
                 {
                     Debug.LogError("DragAndDropSystem: cannot find DraggableBlockView");
                     return;
                 }
-                m_CurrentDraggable = draggable;
+                
+                m_CurrentBlockView = newBlockView;
                 
                 Debug.Log("DragAndDropSystem: Created dragged object");
             }
@@ -237,9 +243,9 @@ namespace Core.DragAndDrop.External
         
         private void FinishDragging(Vector3 endPosition)
         {
-            if (m_CurrentDraggable != null)
+            if (m_CurrentBlockView.GetDraggableBlockController() != null)
             {
-                m_CurrentDraggable.OnDragEnd(endPosition);
+                m_CurrentBlockView.GetDraggableBlockController() .OnDragEnd(endPosition);
                 
                 //TODO: Тут проверка на область в которой закончили движение и реакцию остального проекта
             }
@@ -258,6 +264,7 @@ namespace Core.DragAndDrop.External
         public void Dispose()
         {
             UnsubscribeFromInputEvents();
+            m_PickUpAnimation?.Dispose();
         }
     }
 }
