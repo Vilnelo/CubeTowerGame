@@ -1,4 +1,5 @@
 ﻿using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 namespace Core.TrashHole.External
@@ -9,6 +10,7 @@ namespace Core.TrashHole.External
         [SerializeField] private RectTransform m_TrashHole;
         [SerializeField] private bool m_ShowDebugGizmos = true;
         [SerializeField] private float m_OvalSizeMultiplier = 1.01f;
+        [SerializeField] private HoleMaskView m_MaskView;
 
         public RectTransform GetTrashHoleRect()
         {
@@ -34,6 +36,11 @@ namespace Core.TrashHole.External
                 imageSize.x * m_OvalSizeMultiplier,
                 imageSize.y * m_OvalSizeMultiplier
             );
+        }
+
+        public HoleMaskView GetMaskView()
+        {
+            return m_MaskView;
         }
 
         public Image GetTrashHoleImage()

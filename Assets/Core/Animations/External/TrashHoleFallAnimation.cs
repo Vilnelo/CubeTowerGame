@@ -10,7 +10,7 @@ namespace Core.Animations.External
         private Canvas m_Canvas;
         private Vector3 m_StartPosition;
         private Vector3 m_TargetPosition;
-        private Action m_OnStartFallAnimation;
+        private Action m_OnMiddleAnimation;
         private Action m_OnCompleteCallback;
         
         private Sequence m_AnimationSequence;
@@ -19,7 +19,7 @@ namespace Core.Animations.External
         private const float m_RotationSpeed = 180f;
         private const float m_ScaleDownFactor = 0.6f;
         
-        public void StartFallAnimation(GameObject objectToAnimate, Vector3 holeCenter, Canvas canvas, Action onStart = null, Action onComplete = null)
+        public void StartFallAnimation(GameObject objectToAnimate, Vector3 holeCenter, Canvas canvas, Action onMiddle = null, Action onComplete = null)
         {
             if (objectToAnimate == null)
             {
@@ -38,6 +38,7 @@ namespace Core.Animations.External
             m_AnimatedObject = objectToAnimate;
             m_Canvas = canvas;
             m_StartPosition = objectToAnimate.transform.position;
+            m_OnMiddleAnimation = onMiddle;
             m_OnCompleteCallback = onComplete;
             
             m_TargetPosition = CalculateHoleBottomCenter(holeCenter);
@@ -52,12 +53,13 @@ namespace Core.Animations.External
             StopAnimation();
             
             m_AnimationSequence = DOTween.Sequence();
-
-            OnAnimationStart();
             
             AnimateTrajectory();
             AnimateRotation();
             AnimateScale();
+            
+            // Коллбек на середину анимации (когда объект в самой высокой точке)
+            m_AnimationSequence.InsertCallback(m_AnimationDuration * 0.5f, OnAnimationMiddle);
             
             m_AnimationSequence.OnComplete(() =>
             {
@@ -160,9 +162,10 @@ namespace Core.Animations.External
             );
         }
         
-        private void OnAnimationStart()
+        private void OnAnimationMiddle()
         {
-            m_OnStartFallAnimation?.Invoke();
+            Debug.Log($"TrashHoleFallAnimation: Middle animation reached for {m_AnimatedObject?.name}");
+            m_OnMiddleAnimation?.Invoke();
         }
         
         private void OnAnimationComplete()
@@ -193,6 +196,7 @@ namespace Core.Animations.External
             m_AnimatedObject = null;
             m_Canvas = null;
             m_OnCompleteCallback = null;
+            m_OnMiddleAnimation = null;
             m_AnimationSequence = null;
         }
         

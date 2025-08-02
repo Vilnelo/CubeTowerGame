@@ -1,4 +1,5 @@
 ﻿using Core.Animations.External;
+using Core.BottomBlocks.External;
 using Core.Canvases.Runtime;
 using Core.TrashHole.Runtime;
 using Core.UI.External;
@@ -77,7 +78,17 @@ namespace Core.TrashHole.External
             // Запускаем анимацию с callback на уничтожение
             fallAnimation.StartFallAnimation(block, holeBottomWorldPosition, m_MainCanvas.GetCanvas(), () =>
             {
-               
+                var maskView = m_CoreUIController.GetCoreView().TrashHoleView.GetMaskView();
+                block.transform.SetParent(maskView.GetMaskTransform());
+                
+                if (!block.TryGetComponent<BlockView>(out var blockView))
+                {
+                    Debug.LogError("DragAndDropSystem: cannot find DraggableBlockView");
+                    return;
+                }
+                
+                blockView.SetMaterial(maskView.GetMaskedMaterial());
+                
             }, () =>
             {
                 // Этот callback вызовется когда анимация закончится

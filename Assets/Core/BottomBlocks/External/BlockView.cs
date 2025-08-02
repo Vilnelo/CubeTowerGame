@@ -58,6 +58,11 @@ namespace Core.BottomBlocks.External
             m_BlockSprite.sprite = sprite;
         }
         
+        public void SetMaterial(Material material)
+        {
+            m_BlockSprite.material = material;
+        }
+        
         public void SetSize(float size)
         {
             SetSize(size, size);
