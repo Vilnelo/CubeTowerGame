@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using Core.AssetManagement.Runtime;
 using Core.BottomBlocks.External;
+using Core.BottomBlocks.Runtime;
 using Core.Canvases.External;
 using Core.Canvases.Runtime;
 using Core.DragAndDrop.Runtime;
@@ -26,6 +27,9 @@ namespace Core.DragAndDrop.External
         private IDraggable m_CurrentDraggable;
         private Camera m_MainCamera;
         private SimpleTimerWrapper m_CountdownTimer;
+        private BlockView m_CurrentBlockView;
+        private bool m_IsWaitingForPickup = false;
+        private bool m_IsDragging = false;
         
         private const float m_LerpForce = 10f;
         private const float m_DelayTime = 0.3f;
@@ -61,77 +65,57 @@ namespace Core.DragAndDrop.External
             m_CountdownTimer.StopTimer();
             m_CountdownTimer.ResetTimer(); 
             m_CountdownTimer.StartTimer();
+            m_IsWaitingForPickup = true;
         }
         
         private void OnTimerTick(SimpleTimerInfo timerInfo)
         {
-            //Do nothing
+            // Do nothing
         }
     
         private void OnTimerComplete(SimpleTimerInfo timerInfo)
         {
+            if (m_IsWaitingForPickup && m_CurrentBlockView != null)
+            {
+                // Таймер завершился, блокируем скролл и берем предмет
+                ScrollEvents.RequestBlockScroll();
+                PickupBlock(m_CurrentBlockView);
+                m_IsWaitingForPickup = false;
+                Debug.Log("DragAndDropSystem: Timer completed - block picked up and scroll blocked");
+            }
+            
             m_CountdownTimer.StopTimer();
-            Debug.Log("Timer completed!");
         }
         
         private void OnMouseDown(Vector3 worldPosition)
         {
-            var bottomBlockView = FindDraggableAtPosition(worldPosition);
+            var blockView = FindDraggableAtPosition(worldPosition);
 
-            if (bottomBlockView == null)
+            if (blockView == null)
             {
                 return;
             }
             
-            StartPickUpTimer();
-        }
-        
-        private void OnStartDrag(Vector3 worldPosition)
-        {
-            var bottomBlockView = FindDraggableAtPosition(worldPosition);
-            if (bottomBlockView != null)
-            {
-                StartDragging(bottomBlockView, worldPosition);
-            }
-        }
-        
-        private void OnDragging(Vector3 worldPosition)
-        {
-            if (m_CurrentDraggedObject != null)
-            {
-                UpdateDraggedObjectPosition(worldPosition);
-            }
-        }
-        
-        private void OnEndDrag(Vector3 worldPosition)
-        {
-            if (m_CurrentDraggedObject != null)
-            {
-                FinishDragging(worldPosition);
-            }
+            m_CurrentBlockView = blockView;
+            var draggable = blockView.GetDraggableBlockController();
+            var dragBehavior = draggable.GetDragBehavior();
             
-            m_CountdownTimer.StopTimer();
-        }
-        
-        private BlockView FindDraggableAtPosition(Vector3 worldPosition)
-        {
-            PointerEventData pointerData = new PointerEventData(EventSystem.current);
-            List<RaycastResult> resultsData = new List<RaycastResult>();
-            pointerData.position = Input.mousePosition;
-            EventSystem.current.RaycastAll(pointerData, resultsData);
-
-            foreach (var result in resultsData)
+            // Если блок Move - берем сразу без таймера
+            if (dragBehavior == DragType.Move)
             {
-                if (result.gameObject.transform.TryGetComponent<BlockView>(out var bottomBlockView))
-                {
-                    return bottomBlockView;
-                }
+                ScrollEvents.RequestBlockScroll();
+                PickupBlock(blockView);
+                Debug.Log("DragAndDropSystem: Move block picked up immediately");
             }
-
-            return null;
+            else if (dragBehavior == DragType.Clone)
+            {
+                // Если блок Clone - запускаем таймер
+                StartPickUpTimer();
+                Debug.Log("DragAndDropSystem: Clone block - timer started for pickup");
+            }
         }
         
-        private void StartDragging(BlockView blockView, Vector3 startPosition)
+        private void PickupBlock(BlockView blockView)
         {
             m_CurrentDraggable = blockView.GetDraggableBlockController();
             
@@ -147,6 +131,79 @@ namespace Core.DragAndDrop.External
             }
             
             m_CurrentDraggable.OnDragStart();
+            m_IsDragging = true;
+        }
+        
+        private void OnStartDrag(Vector3 worldPosition)
+        {
+            // Если начали двигать мышь раньше завершения таймера - останавливаем таймер
+            if (m_IsWaitingForPickup)
+            {
+                m_CountdownTimer.StopTimer();
+                m_IsWaitingForPickup = false;
+                Debug.Log("DragAndDropSystem: Drag started before timer - timer stopped");
+                return;
+            }
+            
+            // Если уже взяли предмет через таймер или Move блок - ничего не делаем
+            // Логика перетаскивания будет обработана в OnDragging
+        }
+        
+        private void OnDragging(Vector3 worldPosition)
+        {
+            if (m_CurrentDraggedObject != null && m_IsDragging)
+            {
+                UpdateDraggedObjectPosition(worldPosition);
+            }
+        }
+        
+        private void OnEndDrag(Vector3 worldPosition)
+        {
+            // Останавливаем таймер если он был запущен
+            if (m_IsWaitingForPickup)
+            {
+                m_CountdownTimer.StopTimer();
+                m_IsWaitingForPickup = false;
+                Debug.Log("DragAndDropSystem: Mouse released - timer stopped");
+            }
+            
+            if (m_CurrentDraggedObject != null && m_IsDragging)
+            {
+                FinishDragging(worldPosition);
+            }
+            
+            // Разблокируем скролл в любом случае
+            ScrollEvents.RequestUnblockScroll();
+            
+            // Сбрасываем состояние
+            ResetDragState();
+        }
+        
+        private void ResetDragState()
+        {
+            m_CurrentBlockView = null;
+            m_CurrentDraggedObject = null;
+            m_CurrentDraggable = null;
+            m_IsDragging = false;
+            m_IsWaitingForPickup = false;
+        }
+        
+        private BlockView FindDraggableAtPosition(Vector3 worldPosition)
+        {
+            PointerEventData pointerData = new PointerEventData(EventSystem.current);
+            List<RaycastResult> resultsData = new List<RaycastResult>();
+            pointerData.position = Input.mousePosition;
+            EventSystem.current.RaycastAll(pointerData, resultsData);
+
+            foreach (var result in resultsData)
+            {
+                if (result.gameObject.transform.TryGetComponent<BlockView>(out var blockView))
+                {
+                    return blockView;
+                }
+            }
+
+            return null;
         }
         
         private void CreateDraggedObject(BlockView blockView)
@@ -154,7 +211,7 @@ namespace Core.DragAndDrop.External
             var originalBlock = blockView;
             if (originalBlock == null)
             {
-                Debug.LogError("DragAndDropSystem: Can only drag BottomBlockView objects for now");
+                Debug.LogError("DragAndDropSystem: Can only drag BlockView objects for now");
                 return;
             }
             
@@ -170,7 +227,7 @@ namespace Core.DragAndDrop.External
                 {
                     Debug.LogError("DragAndDropSystem: cannot find DraggableBlockView");
                     return;
-                };
+                }
                 m_CurrentDraggable = draggable;
                 
                 Debug.Log("DragAndDropSystem: Created dragged object");
@@ -194,12 +251,8 @@ namespace Core.DragAndDrop.External
             {
                 m_CurrentDraggable.OnDragEnd(endPosition);
                 
-                
                 //TODO: Тут проверка на область в которой закончили движение и реакцию остального проекта
             }
-            
-            m_CurrentDraggedObject = null;
-            m_CurrentDraggable = null;
             
             Debug.Log("DragAndDropSystem: Finished dragging");
         }

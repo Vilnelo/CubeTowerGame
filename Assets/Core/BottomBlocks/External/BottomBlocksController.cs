@@ -1,4 +1,6 @@
-﻿using Core.AssetManagement.Runtime;
+﻿using System;
+using Core.AssetManagement.Runtime;
+using Core.BottomBlocks.Runtime;
 using Core.BottomBlocks.Runtime.Dto;
 using Core.ConfigSystem.Runtime;
 using Core.DragAndDrop.Runtime;
@@ -8,7 +10,7 @@ using Zenject;
 
 namespace Core.BottomBlocks.External
 {
-    public class BottomBlocksController : IInitializable
+    public class BottomBlocksController : IInitializable, IDisposable
     {
         [Inject] private IConfigLoader m_ConfigLoader;
         [Inject] private ILayoutUIController m_LayoutUIController;
@@ -39,6 +41,9 @@ namespace Core.BottomBlocks.External
             }
             
             m_ScrollBlocker.Init(m_View.GetScrollRect());
+            
+            ScrollEvents.OnBlockScrollRequested += BlockScroll;
+            ScrollEvents.OnUnblockScrollRequested += UnblockScroll;
             
             Debug.Log($"BottomBlocksController: Loaded {cubesConfig.Cubes.Count} cubes configuration");
             
@@ -133,6 +138,22 @@ namespace Core.BottomBlocks.External
             blockView.SetSize(blockSize);
             
             Debug.Log($"BottomBlocksController: Created block {config.ColorName} with size {blockSize:F2}");
+        }
+        
+        public void BlockScroll()
+        {
+            m_ScrollBlocker?.BlockScroll();
+        }
+        
+        public void UnblockScroll()
+        {
+            m_ScrollBlocker?.UnblockScroll();
+        }
+        
+        public void Dispose()
+        {
+            ScrollEvents.OnBlockScrollRequested -= BlockScroll;
+            ScrollEvents.OnUnblockScrollRequested -= UnblockScroll;
         }
     }
 }

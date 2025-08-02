@@ -1,4 +1,4 @@
-﻿namespace Utils.SimpleTimerSystem
+﻿namespace Utils.SimpleTimerSystem.Runtime
 {
     public class SimpleTimerInfo
     {

@@ -1,6 +1,7 @@
 ﻿using System;
+using Utils.SimpleTimerSystem.Runtime;
 
-namespace Utils.SimpleTimerSystem
+namespace Utils.SimpleTimerSystem.External
 {
     public class SimpleTimer : ISimpleTimer
     {

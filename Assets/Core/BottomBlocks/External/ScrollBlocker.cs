@@ -12,25 +12,8 @@ namespace Core.BottomBlocks.External
         public void Init(ScrollRect scrollRect)
         {
             m_BottomScrollRect = scrollRect;
-            SubscribeToInputEvents();
             
             Debug.Log("ScrollBlocker: Initialized with scroll rect");
-        }
-        
-        private void SubscribeToInputEvents()
-        {
-            InputManager.OnStartDrag += OnStartDrag;
-            InputManager.OnEndDrag += OnEndDrag;
-        }
-        
-        private void OnStartDrag(Vector3 position)
-        {
-            BlockScroll();
-        }
-        
-        private void OnEndDrag(Vector3 position)
-        {
-            UnblockScroll();
         }
         
         public void BlockScroll()
@@ -53,10 +36,9 @@ namespace Core.BottomBlocks.External
             }
         }
         
-        public void Dispose()
+        public bool IsBlocked()
         {
-            InputManager.OnStartDrag -= OnStartDrag;
-            InputManager.OnEndDrag -= OnEndDrag;
+            return m_IsBlocked;
         }
     }
 }
