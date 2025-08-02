@@ -5,6 +5,8 @@ using Core.ConfigSystem.Runtime;
 using Core.Scene.External;
 using Core.Scene.Runtime;
 using UnityEngine;
+using Utils.SimpleTimerSystem.External;
+using Utils.SimpleTimerSystem.Runtime;
 using Zenject;
 
 namespace Core.Installers
@@ -18,6 +20,7 @@ namespace Core.Installers
             InstallSceneController();
             InstallAssetLoader();
             InstallConfigSystem();
+            InstallTimerController();
 
             LogDebug("Global services installed successfully");
         }
@@ -40,6 +43,17 @@ namespace Core.Installers
                 .AsSingle();
                 
             LogDebug("AssetLoader bound successfully");
+        }
+        
+        private void InstallTimerController()
+        {
+            Container.Bind<ITimerController>()
+                .To<TimerController>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
+
+            LogDebug("TimerController bound successfully");
         }
         
         private void InstallConfigSystem()

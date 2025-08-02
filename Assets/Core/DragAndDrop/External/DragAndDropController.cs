@@ -9,6 +9,9 @@ using Core.InputSystem.External;
 using Core.UI.Runtime;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using Utils.SimpleTimerSystem;
+using Utils.SimpleTimerSystem.External;
+using Utils.SimpleTimerSystem.Runtime;
 using Zenject;
 using Object = UnityEngine.Object;
 
@@ -17,18 +20,22 @@ namespace Core.DragAndDrop.External
     public class DragAndDropController : IInitializable, IDisposable
     {
         [Inject] private IMainCanvas m_Canvas;
+        [Inject] private ITimerController m_TimerController;
 
         private GameObject m_CurrentDraggedObject;
         private IDraggable m_CurrentDraggable;
         private Camera m_MainCamera;
+        private SimpleTimerWrapper m_CountdownTimer;
         
         private const float m_LerpForce = 10f;
+        private const float m_DelayTime = 0.3f;
         
         public void Initialize()
         {
             Debug.Log("DragAndDropSystem: Initialized");
             
             SubscribeToInputEvents();
+            CreateTimer();
         }
         
         private void SubscribeToInputEvents()
@@ -37,6 +44,34 @@ namespace Core.DragAndDrop.External
             InputManager.OnStartDrag += OnStartDrag;
             InputManager.OnDragging += OnDragging;
             InputManager.OnEndDrag += OnEndDrag;
+        }
+
+        private void CreateTimer()
+        {
+            m_CountdownTimer = new SimpleTimerWrapper(
+                m_TimerController,
+                m_DelayTime,
+                OnTimerTick,
+                OnTimerComplete
+            );
+        }
+
+        private void StartPickUpTimer()
+        {
+            m_CountdownTimer.StopTimer();
+            m_CountdownTimer.ResetTimer(); 
+            m_CountdownTimer.StartTimer();
+        }
+        
+        private void OnTimerTick(SimpleTimerInfo timerInfo)
+        {
+            //Do nothing
+        }
+    
+        private void OnTimerComplete(SimpleTimerInfo timerInfo)
+        {
+            m_CountdownTimer.StopTimer();
+            Debug.Log("Timer completed!");
         }
         
         private void OnMouseDown(Vector3 worldPosition)
@@ -48,7 +83,7 @@ namespace Core.DragAndDrop.External
                 return;
             }
             
-            //TODO: Тут вставить таймер
+            StartPickUpTimer();
         }
         
         private void OnStartDrag(Vector3 worldPosition)
@@ -74,6 +109,8 @@ namespace Core.DragAndDrop.External
             {
                 FinishDragging(worldPosition);
             }
+            
+            m_CountdownTimer.StopTimer();
         }
         
         private BlockView FindDraggableAtPosition(Vector3 worldPosition)
