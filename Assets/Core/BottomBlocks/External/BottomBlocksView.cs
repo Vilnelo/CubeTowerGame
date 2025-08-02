@@ -7,7 +7,7 @@ namespace Core.BottomBlocks.External
     {
         [SerializeField] private ScrollRect m_ScrollRect;
         [SerializeField] private Transform m_ScrollContent;
-        
+
         public Transform GetScrollContent()
         {
             return m_ScrollContent;

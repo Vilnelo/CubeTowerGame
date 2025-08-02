@@ -8,7 +8,7 @@ namespace Core.AssetManagement.External
     public class AssetLoader : IAssetLoader
     {
         private readonly Dictionary<string, Object> m_LoadedAssets = new();
-        
+
         private readonly Dictionary<string, List<GameObject>> m_InstantiatedObjects = new();
 
         public T LoadSync<T>(string address) where T : Object
@@ -45,7 +45,7 @@ namespace Core.AssetManagement.External
         public T InstantiateSync<T>(string address, Transform parent = null) where T : Component
         {
             var prefab = LoadSync<GameObject>(address);
-            if (prefab == null) 
+            if (prefab == null)
             {
                 Debug.LogError($"[AssetLoader] Cannot instantiate - prefab not loaded: {address}");
                 return null;
@@ -54,10 +54,11 @@ namespace Core.AssetManagement.External
             return CreateInstance<T>(address, prefab, parent);
         }
 
-        public T InstantiateSync<T>(string address, Vector3 position, Quaternion rotation, Transform parent = null) where T : Component
+        public T InstantiateSync<T>(string address, Vector3 position, Quaternion rotation, Transform parent = null)
+            where T : Component
         {
             var prefab = LoadSync<GameObject>(address);
-            if (prefab == null) 
+            if (prefab == null)
             {
                 Debug.LogError($"[AssetLoader] Cannot instantiate - prefab not loaded: {address}");
                 return null;
@@ -99,6 +100,7 @@ namespace Core.AssetManagement.External
             {
                 m_InstantiatedObjects[address] = new List<GameObject>();
             }
+
             m_InstantiatedObjects[address].Add(instance);
         }
 
@@ -116,9 +118,10 @@ namespace Core.AssetManagement.External
                     if (instance != null)
                         Object.Destroy(instance);
                 }
+
                 m_InstantiatedObjects.Remove(address);
             }
-            
+
             if (m_LoadedAssets.TryGetValue(address, out var asset))
             {
                 Addressables.Release(asset);
@@ -137,12 +140,12 @@ namespace Core.AssetManagement.External
                         Object.Destroy(instance);
                 }
             }
-            
+
             foreach (var kvp in m_LoadedAssets)
             {
                 Addressables.Release(kvp.Value);
             }
-            
+
             m_LoadedAssets.Clear();
             m_InstantiatedObjects.Clear();
             Debug.Log("[AssetLoader] Released all assets");

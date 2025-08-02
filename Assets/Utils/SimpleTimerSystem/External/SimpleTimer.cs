@@ -5,11 +5,11 @@ namespace Utils.SimpleTimerSystem.External
 {
     public class SimpleTimer : ISimpleTimer
     {
-         private static int s_NextId = 0;
-        
+        private static int s_NextId = 0;
+
         private readonly int m_Id;
         private readonly SimpleTimerInfo m_TimerInfo;
-        
+
         private Action<ISimpleTimer> m_OnComplete;
         private Action<SimpleTimerInfo> m_OnUpdate;
         private bool m_IsRunning;
@@ -46,7 +46,6 @@ namespace Utils.SimpleTimerSystem.External
             m_TimerInfo.Delta = deltaTime;
             m_TimerInfo.TimeLeft -= deltaTime;
 
-            // Вызываем update коллбек
             m_OnUpdate?.Invoke(m_TimerInfo);
 
             if (m_TimerInfo.TimeLeft <= 0f)

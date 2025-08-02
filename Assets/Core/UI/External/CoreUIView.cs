@@ -7,8 +7,9 @@ namespace Core.UI.External
 {
     public class CoreUIView : MonoBehaviour
     {
-        [Header("View References")] 
-        [SerializeField] private TrashHoleView m_TrashHoleView;
+        [Header("View References")] [SerializeField]
+        private TrashHoleView m_TrashHoleView;
+
         [SerializeField] private TowerView m_TowerView;
         [SerializeField] private BottomBlocksView m_BottomBlocksView;
         [SerializeField] private Transform m_DraggingBlockView;

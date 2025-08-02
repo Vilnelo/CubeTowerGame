@@ -9,7 +9,7 @@ namespace Core.DragAndDrop.Runtime
         void OnDragStart();
         void OnDragEnd(Vector3 endPosition);
         GameObject GetGameObject();
-        
+
         void OnMoveStart();
         void OnMoveEnd();
     }

@@ -24,7 +24,7 @@ namespace Core.ConfigSystem.External
             {
                 return cachedConfig as T;
             }
-            
+
             var config = LoadAndParseConfig<T>(configName);
             if (config != null)
             {

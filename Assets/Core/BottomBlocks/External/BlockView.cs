@@ -10,16 +10,16 @@ namespace Core.BottomBlocks.External
         [SerializeField] private Image m_BlockSprite;
         [SerializeField] private RectTransform m_LayoutElement;
         [SerializeField] private DraggableBlockController m_DraggableBlockController;
-        
+
         private string m_ColorName;
         private int m_Id;
-        
+
         public void Init(CubeDto config)
         {
             m_Id = config.Id;
             m_ColorName = config.ColorName;
             m_DraggableBlockController.Init();
-            
+
             Debug.Log($"BottomBlockView: Setup block {m_ColorName} #{m_Id}");
         }
 
@@ -57,12 +57,12 @@ namespace Core.BottomBlocks.External
         {
             m_BlockSprite.sprite = sprite;
         }
-        
+
         public void SetMaterial(Material material)
         {
             m_BlockSprite.material = material;
         }
-        
+
         public void SetSize(float size)
         {
             SetSize(size, size);

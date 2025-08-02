@@ -15,35 +15,36 @@ namespace Core.InputSystem.External
         {
             var screenPosition = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             mousePosition = screenPosition;
-            
+
             if (m_IsBlocked)
             {
                 return InputResult.None;
             }
-            
+
             if (Input.GetMouseButtonDown(0))
             {
                 m_IsMouseDown = true;
                 m_MouseDownPosition = mousePosition;
                 return InputResult.Down;
             }
-            
+
             if (Input.GetMouseButton(0))
             {
-                if (m_IsMouseDown && !m_IsDragging && (mousePosition - m_MouseDownPosition).sqrMagnitude > m_MinDraggingMagnitude)
+                if (m_IsMouseDown && !m_IsDragging &&
+                    (mousePosition - m_MouseDownPosition).sqrMagnitude > m_MinDraggingMagnitude)
                 {
                     m_IsDragging = true;
                     return InputResult.StartDrag;
                 }
-                
+
                 if (m_IsDragging)
                 {
                     return InputResult.Dragging;
                 }
-                
+
                 return InputResult.None;
             }
-            
+
             if (Input.GetMouseButtonUp(0))
             {
                 m_IsMouseDown = false;
@@ -55,10 +56,10 @@ namespace Core.InputSystem.External
 
                 return InputResult.Up;
             }
-            
+
             return InputResult.None;
         }
-        
+
         public bool IsMultiTouch()
         {
             return Input.touchCount > 1;

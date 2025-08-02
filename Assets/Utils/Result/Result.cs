@@ -10,7 +10,7 @@
             Object = result;
             IsExist = isExist;
         }
-        
+
         public static Result<T> Success(T result)
         {
             return new Result<T>(result, true);
@@ -26,15 +26,15 @@
             return this.IsExist == other.IsExist &&
                    (IsExist == false || this.Object.Equals(other.Object));
         }
-        
+
         public override bool Equals(object other)
         {
             if (!(other is Result<T>))
             {
                 return false;
             }
-            
-            return Equals((Result<T>) other);
+
+            return Equals((Result<T>)other);
         }
 
         public override string ToString()

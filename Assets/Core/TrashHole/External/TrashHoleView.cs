@@ -8,7 +8,6 @@ namespace Core.TrashHole.External
     {
         [SerializeField] private Image m_TrashHoleImage;
         [SerializeField] private RectTransform m_TrashHole;
-        [SerializeField] private bool m_ShowDebugGizmos = true;
         [SerializeField] private float m_OvalSizeMultiplier = 1.01f;
         [SerializeField] private HoleMaskView m_MaskView;
 

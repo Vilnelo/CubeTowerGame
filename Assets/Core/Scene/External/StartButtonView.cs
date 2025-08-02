@@ -8,7 +8,7 @@ namespace Core.Scene.External
     {
         [SerializeField] private Button m_Button;
         [SerializeField] private TMP_Text m_Text;
-    
+
         public TMP_Text Text
         {
             get => m_Text;

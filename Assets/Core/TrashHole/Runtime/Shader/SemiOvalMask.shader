@@ -8,16 +8,16 @@ Shader "Custom/SemiOvalMask"
         _SizeY ("Oval Height", Range(0.001, 1.0)) = 0.3
         _RectWidth ("Rectangle Width", Range(0.1, 3.0)) = 1.0
         _RectHeight ("Rectangle Height Up", Range(0.1, 2.0)) = 1.0
-        _ShowMask ("Show Mask (Debug)", Range(0, 1)) = 0 // ← ДОБАВЛЕНО для отладки
+        _ShowMask ("Show Mask (Debug)", Range(0, 1)) = 0
     }
     SubShader
     {
-        Tags 
-        { 
-            "RenderType"="Transparent" 
+        Tags
+        {
+            "RenderType"="Transparent"
             "Queue"="Transparent"
         }
-        
+
         LOD 100
         Blend SrcAlpha OneMinusSrcAlpha
         ZWrite Off
@@ -30,7 +30,7 @@ Shader "Custom/SemiOvalMask"
                 Comp Always
                 Pass Replace
             }
-            
+
             CGPROGRAM
             #pragma vertex vert
             #pragma fragment frag
@@ -56,9 +56,9 @@ Shader "Custom/SemiOvalMask"
             float _SizeY;
             float _RectWidth;
             float _RectHeight;
-            float _ShowMask; // ← ДОБАВЛЕНО
+            float _ShowMask;
 
-            v2f vert (appdata v)
+            v2f vert(appdata v)
             {
                 v2f o;
                 o.vertex = UnityObjectToClipPos(v.vertex);
@@ -66,36 +66,29 @@ Shader "Custom/SemiOvalMask"
                 return o;
             }
 
-            fixed4 frag (v2f i) : SV_Target
+            fixed4 frag(v2f i) : SV_Target
             {
                 fixed4 col = tex2D(_MainTex, i.uv);
-                
+
                 float2 uv = i.uv - _Center.xy;
-                
-                // Создаем эллипс
-                float ellipse = (uv.x * uv.x) / (_SizeX * _SizeX) + 
-                               (uv.y * uv.y) / (_SizeY * _SizeY);
-                
-                // Полуовал сверху (только верхняя часть эллипса)
+
+                float ellipse = (uv.x * uv.x) / (_SizeX * _SizeX) +
+                    (uv.y * uv.y) / (_SizeY * _SizeY);
+
                 float semiOval = step(ellipse, 1.0) * step(uv.y, 0.0);
-                
-                // Прямоугольник снизу с настраиваемой шириной
+
                 float rectangleHeight = step(0.0, uv.y);
                 float rectangleWidth = 1.0 - step(_RectWidth * 0.5, abs(uv.x));
                 float rectangle = rectangleHeight * rectangleWidth;
-                
-                // Дополнительный прямоугольник вверх с настраиваемой высотой
+
                 float upperRectHeight = 1.0 - step(_RectHeight * 0.5, abs(uv.y + 0.5));
                 float upperRectWidth = 1.0 - step(_RectWidth * 0.5, abs(uv.x));
                 float upperRect = step(uv.y, 0.0) * upperRectHeight * upperRectWidth;
-                
-                // Объединяем ВСЕ фигуры
+
                 float combinedShape = max(max(semiOval, rectangle), upperRect);
-                
-                // ВАЖНО: отсекаем пиксели вне маски для Stencil Buffer
+
                 clip(combinedShape - 0.5);
-                
-                // ← ИЗМЕНЕНО: возвращаем прозрачный цвет, но с возможностью показать маску для отладки
+
                 return fixed4(1, 1, 1, _ShowMask);
             }
             ENDCG

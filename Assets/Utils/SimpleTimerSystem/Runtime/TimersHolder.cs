@@ -8,7 +8,7 @@ namespace Utils.SimpleTimerSystem.Runtime
         private Dictionary<int, List<ISimpleTimer>> m_TimerMap = new Dictionary<int, List<ISimpleTimer>>();
         private List<ISimpleTimer> m_TimersToDelete = new List<ISimpleTimer>();
         private List<ISimpleTimer> m_TimersToAdd = new List<ISimpleTimer>();
-        
+
         public void AddTimer(ISimpleTimer timer)
         {
             if (m_TimerMap == null)
@@ -16,10 +16,10 @@ namespace Utils.SimpleTimerSystem.Runtime
                 Debug.LogError("[TimersHolder] TimerMap is null!");
                 return;
             }
-            
+
             m_TimersToAdd.Add(timer);
         }
-        
+
         private void AddTimerInternal(ISimpleTimer timer)
         {
             int id = timer.GetId();
@@ -30,13 +30,13 @@ namespace Utils.SimpleTimerSystem.Runtime
                     Debug.LogError($"Timer already exists in manager! id = {id}");
                     return;
                 }
-                
+
                 m_TimerMap[id].Add(timer);
                 timer.AddActionToCompleteEvent(OnComplete);
                 return;
             }
-            
-            m_TimerMap.Add(id, new List<ISimpleTimer>() {timer});
+
+            m_TimerMap.Add(id, new List<ISimpleTimer>() { timer });
             timer.AddActionToCompleteEvent(OnComplete);
         }
 
@@ -66,12 +66,12 @@ namespace Utils.SimpleTimerSystem.Runtime
                     Debug.LogError($"[TimersHolder] Can't remove timer with id {timerId}.");
                     return false;
                 }
-                
+
                 if (timers.Count <= 0)
                 {
                     m_TimerMap.Remove(timerId);
                 }
-                
+
                 return true;
             }
 
@@ -84,19 +84,19 @@ namespace Utils.SimpleTimerSystem.Runtime
             {
                 return;
             }
-            
+
             foreach (var timer in m_TimersToAdd)
             {
                 AddTimerInternal(timer);
             }
-             
+
             m_TimersToAdd.Clear();
-            
+
             if (m_TimerMap.Count <= 0)
             {
                 return;
             }
-            
+
             foreach (var timerList in m_TimerMap)
             {
                 foreach (var timer in timerList.Value)
@@ -104,13 +104,13 @@ namespace Utils.SimpleTimerSystem.Runtime
                     timer.Update(time);
                 }
             }
-            
+
             foreach (var timer in m_TimersToDelete)
             {
                 RemoveTimerInternal(timer);
                 timer.RemoveActionToCompleteEvent(OnComplete);
             }
-            
+
             m_TimersToDelete.Clear();
         }
     }

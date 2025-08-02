@@ -16,7 +16,7 @@ namespace Core.Installers
         public override void InstallBindings()
         {
             LogDebug("Installing global services...");
-            
+
             InstallSceneController();
             InstallAssetLoader();
             InstallConfigSystem();
@@ -24,7 +24,7 @@ namespace Core.Installers
 
             LogDebug("Global services installed successfully");
         }
-        
+
         private void InstallSceneController()
         {
             Container.Bind<ISceneController>()
@@ -35,16 +35,16 @@ namespace Core.Installers
 
             LogDebug("SceneController bound successfully");
         }
-        
+
         private void InstallAssetLoader()
         {
             Container.Bind<IAssetLoader>()
                 .To<AssetLoader>()
                 .AsSingle();
-                
+
             LogDebug("AssetLoader bound successfully");
         }
-        
+
         private void InstallTimerController()
         {
             Container.Bind<ITimerController>()
@@ -55,25 +55,23 @@ namespace Core.Installers
 
             LogDebug("TimerController bound successfully");
         }
-        
+
         private void InstallConfigSystem()
         {
             Container.Bind<IConfigReader>()
                 .To<ConfigReader>()
                 .AsSingle();
-            
+
             Container.Bind<IConfigLoader>()
                 .To<ConfigLoader>()
                 .AsSingle();
-                
+
             LogDebug("ConfigSystem bound successfully");
         }
-        
+
         private void LogDebug(string message)
         {
-            
-                Debug.Log($"[ProjectInstaller] {message}");
-           
+            Debug.Log($"[ProjectInstaller] {message}");
         }
     }
 }

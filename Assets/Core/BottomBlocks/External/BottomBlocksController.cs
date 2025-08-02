@@ -16,40 +16,40 @@ namespace Core.BottomBlocks.External
         [Inject] private ILayoutUIController m_LayoutUIController;
         [Inject] private IAssetLoader m_AssetLoader;
         [Inject] private ICoreUIController m_CoreUIController;
-        
+
         private const string m_BlocksConfigKey = "BlocksConfig";
         private const string m_BottomBlockViewKey = "BottomBlockView";
-        
+
         private BottomBlocksView m_View;
         private ScrollBlocker m_ScrollBlocker = new ScrollBlocker();
         private CubesDto m_CubesDto;
-        
+
         public void Initialize()
         {
             var cubesConfig = m_ConfigLoader.GetConfig<CubesDto>(m_BlocksConfigKey);
-            
+
             if (cubesConfig == null)
             {
                 Debug.LogError("BottomBlocksController: Failed to load cubes config");
                 return;
             }
-            
+
             if (!TryGetBottomBlocksView())
             {
                 Debug.LogError("BottomBlocksController: Failed to get BottomBlocksView");
                 return;
             }
-            
+
             m_ScrollBlocker.Init(m_View.GetScrollRect());
-            
+
             ScrollEvents.OnBlockScrollRequested += BlockScroll;
             ScrollEvents.OnUnblockScrollRequested += UnblockScroll;
-            
+
             Debug.Log($"BottomBlocksController: Loaded {cubesConfig.Cubes.Count} cubes configuration");
-            
+
             CreateBlocksFromConfig(cubesConfig);
         }
-        
+
         private bool TryGetBottomBlocksView()
         {
             var coreView = m_CoreUIController.GetCoreView();
@@ -75,7 +75,7 @@ namespace Core.BottomBlocks.External
             Debug.Log("BottomBlocksController: Successfully got BottomBlocksView");
             return true;
         }
-        
+
         private void CreateBlocksFromConfig(CubesDto config)
         {
             for (int i = config.Cubes.Count - 1; i >= 0; i--)
@@ -83,24 +83,24 @@ namespace Core.BottomBlocks.External
                 CreateBlock(config.Cubes[i]);
             }
         }
-        
+
         private void CreateBlock(CubeDto cubeConfig)
         {
             try
             {
                 var blockView = m_AssetLoader.InstantiateSync<BlockView>(
-                    m_BottomBlockViewKey, 
+                    m_BottomBlockViewKey,
                     m_View.GetScrollContent()
                 );
-                
+
                 if (blockView != null)
                 {
                     blockView.Init(cubeConfig);
-                    
+
                     LoadAndSetSprite(blockView, cubeConfig.SpriteName);
-                    
+
                     blockView.GetDraggableBlockController().SetDragType(DragType.Clone);
-                    
+
                     SetupBlockWithLayout(blockView, cubeConfig);
                 }
             }
@@ -109,13 +109,13 @@ namespace Core.BottomBlocks.External
                 Debug.LogError($"BottomBlocksController: Failed to create block {cubeConfig.ColorName} - {ex.Message}");
             }
         }
-        
+
         private void LoadAndSetSprite(BlockView blockView, string spriteName)
         {
             try
             {
                 var sprite = m_AssetLoader.LoadSync<Sprite>(spriteName);
-                
+
                 if (sprite != null)
                 {
                     blockView.SetImage(sprite);
@@ -131,25 +131,25 @@ namespace Core.BottomBlocks.External
                 Debug.LogError($"BottomBlocksController: Error loading sprite {spriteName} - {ex.Message}");
             }
         }
-        
+
         private void SetupBlockWithLayout(BlockView blockView, CubeDto config)
         {
             float blockSize = m_LayoutUIController.GetCubeSize();
             blockView.SetSize(blockSize);
-            
+
             Debug.Log($"BottomBlocksController: Created block {config.ColorName} with size {blockSize:F2}");
         }
-        
+
         public void BlockScroll()
         {
             m_ScrollBlocker?.BlockScroll();
         }
-        
+
         public void UnblockScroll()
         {
             m_ScrollBlocker?.UnblockScroll();
         }
-        
+
         public void Dispose()
         {
             ScrollEvents.OnBlockScrollRequested -= BlockScroll;

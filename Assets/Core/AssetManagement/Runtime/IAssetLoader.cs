@@ -6,6 +6,7 @@ namespace Core.AssetManagement.Runtime
     {
         T LoadSync<T>(string address) where T : Object;
         T InstantiateSync<T>(string address, Transform parent = null) where T : Component;
+
         T InstantiateSync<T>(string address, Vector3 position, Quaternion rotation, Transform parent = null)
             where T : Component;
 

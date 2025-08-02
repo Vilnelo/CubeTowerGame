@@ -9,41 +9,41 @@ namespace Utils.SimpleTimerSystem.External
         private readonly ITimerController m_TimerController;
         private readonly SimpleTimer m_Timer;
         private readonly TimerOnTickCallbackService m_TickCallbackService;
-        
+
         private Action<SimpleTimerInfo> m_OnTimerComplete;
         private bool m_IsAddedToController = false;
 
-        public SimpleTimerWrapper(ITimerController timerController, float duration, 
-            Action<SimpleTimerInfo> onTimerTick = null, Action<SimpleTimerInfo> onTimerComplete = null, 
+        public SimpleTimerWrapper(ITimerController timerController, float duration,
+            Action<SimpleTimerInfo> onTimerTick = null, Action<SimpleTimerInfo> onTimerComplete = null,
             float tickInterval = 0.5f)
         {
             m_TimerController = timerController;
             m_Timer = new SimpleTimer(duration);
             m_OnTimerComplete = onTimerComplete;
-            
+
             if (onTimerTick != null)
             {
                 m_TickCallbackService = new TimerOnTickCallbackService(onTimerTick, tickInterval);
                 m_Timer.AddActionToUpdateEvent(m_TickCallbackService.OnTimerTick);
             }
-            
+
             m_Timer.AddActionToCompleteEvent(OnTimerCompleteInternal);
         }
 
-        public SimpleTimerWrapper(ITimerController timerController, SimpleTimerInfo timerInfo, 
-            Action<SimpleTimerInfo> onTimerTick = null, Action<SimpleTimerInfo> onTimerComplete = null, 
+        public SimpleTimerWrapper(ITimerController timerController, SimpleTimerInfo timerInfo,
+            Action<SimpleTimerInfo> onTimerTick = null, Action<SimpleTimerInfo> onTimerComplete = null,
             float tickInterval = 0.5f)
         {
             m_TimerController = timerController;
             m_Timer = new SimpleTimer(timerInfo);
             m_OnTimerComplete = onTimerComplete;
-            
+
             if (onTimerTick != null)
             {
                 m_TickCallbackService = new TimerOnTickCallbackService(onTimerTick, tickInterval);
                 m_Timer.AddActionToUpdateEvent(m_TickCallbackService.OnTimerTick);
             }
-            
+
             m_Timer.AddActionToCompleteEvent(OnTimerCompleteInternal);
         }
 
@@ -60,7 +60,7 @@ namespace Utils.SimpleTimerSystem.External
                 m_TimerController.AddTimer(m_Timer);
                 m_IsAddedToController = true;
             }
-            
+
             m_Timer.Start();
             m_TickCallbackService?.ResetTimeElapsed();
         }

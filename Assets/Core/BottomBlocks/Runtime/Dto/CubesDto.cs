@@ -9,7 +9,8 @@ namespace Core.BottomBlocks.Runtime.Dto
     [JsonObject(MemberSerialization.Fields)]
     public class CubesDto
     {
-        [SerializeField, JsonProperty("cubes")] private List<CubeDto> m_Cubes;
+        [SerializeField, JsonProperty("cubes")]
+        private List<CubeDto> m_Cubes;
 
         public List<CubeDto> Cubes => m_Cubes;
     }
