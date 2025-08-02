@@ -1,19 +1,20 @@
 using UnityEngine;
-using System.Collections.Generic;
-using UnityEngine.Serialization;
 
-public class HoleMaskView : MonoBehaviour
+namespace Core.TrashHole.External
 {
-    [SerializeField] private Transform m_MaskTransform;
-    [SerializeField] private Material m_MaskedMaterial;
-
-    public Transform GetMaskTransform()
+    public class HoleMaskView : MonoBehaviour
     {
-        return m_MaskTransform;
-    }
+        [SerializeField] private Transform m_MaskTransform;
+        [SerializeField] private Material m_MaskedMaterial;
 
-    public Material GetMaskedMaterial()
-    {
-        return m_MaskedMaterial;
+        public Transform GetMaskTransform()
+        {
+            return m_MaskTransform;
+        }
+
+        public Material GetMaskedMaterial()
+        {
+            return m_MaskedMaterial;
+        }
     }
 }

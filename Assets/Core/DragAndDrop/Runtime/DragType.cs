@@ -3,6 +3,7 @@
     public enum DragType
     {
         Clone,
-        Move
+        Move,
+        Destroying
     }
 }

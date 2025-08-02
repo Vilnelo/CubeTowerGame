@@ -1,19 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Animations.External;
-using Core.AssetManagement.Runtime;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
-using Core.Canvases.External;
-using Core.Canvases.Runtime;
 using Core.DragAndDrop.Runtime;
 using Core.InputSystem.External;
 using Core.TrashHole.Runtime;
-using Core.UI.External;
 using Core.UI.Runtime;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Utils.SimpleTimerSystem;
 using Utils.SimpleTimerSystem.External;
 using Utils.SimpleTimerSystem.Runtime;
 using Zenject;
@@ -37,6 +32,9 @@ namespace Core.DragAndDrop.External
 
         private Dictionary<RectTransform, PickUpAnimation> m_BlockAnimations =
             new Dictionary<RectTransform, PickUpAnimation>();
+
+        private Dictionary<RectTransform, DestructionAnimation> m_DestructionAnimations =
+            new Dictionary<RectTransform, DestructionAnimation>();
 
         private const float m_LerpForce = 10f;
         private const float m_DelayTime = 0.3f;
@@ -83,6 +81,21 @@ namespace Core.DragAndDrop.External
             return m_BlockAnimations[rectTransform];
         }
 
+        private DestructionAnimation GetOrCreateDestructionAnimation(BlockView blockView)
+        {
+            var rectTransform = blockView.GetRectTransform();
+
+            if (!m_DestructionAnimations.ContainsKey(rectTransform))
+            {
+                var animation = new DestructionAnimation();
+                animation.Initialize(rectTransform);
+                m_DestructionAnimations[rectTransform] = animation;
+                Debug.Log("DragAndDropSystem: Created new destruction animation for block");
+            }
+
+            return m_DestructionAnimations[rectTransform];
+        }
+
         private void CleanupAnimation(BlockView blockView)
         {
             if (blockView == null) return;
@@ -93,6 +106,19 @@ namespace Core.DragAndDrop.External
                 m_BlockAnimations[rectTransform].Dispose();
                 m_BlockAnimations.Remove(rectTransform);
                 Debug.Log("DragAndDropSystem: Cleaned up animation for block");
+            }
+        }
+
+        private void CleanupDestructionAnimation(BlockView blockView)
+        {
+            if (blockView == null) return;
+
+            var rectTransform = blockView.GetRectTransform();
+            if (m_DestructionAnimations.ContainsKey(rectTransform))
+            {
+                m_DestructionAnimations[rectTransform].Dispose();
+                m_DestructionAnimations.Remove(rectTransform);
+                Debug.Log("DragAndDropSystem: Cleaned up destruction animation for block");
             }
         }
 
@@ -145,9 +171,16 @@ namespace Core.DragAndDrop.External
                 return;
             }
 
-            m_CurrentBlockView = blockView;
             var draggable = blockView.GetDraggableBlockController();
             var dragBehavior = draggable.GetDragBehavior();
+            
+            if (dragBehavior == DragType.Destroying)
+            {
+                Debug.Log("DragAndDropSystem: Block is being destroyed - ignoring click");
+                return;
+            }
+
+            m_CurrentBlockView = blockView;
 
             if (dragBehavior == DragType.Move)
             {
@@ -326,29 +359,63 @@ namespace Core.DragAndDrop.External
             }
         }
 
+        private bool IsTowerField(Vector3 position)
+        {
+            // TODO: Реализовать проверку является ли позиция полем башни
+            return false;
+        }
+
         private void FinishDragging(Vector3 endPosition)
         {
             if (m_CurrentBlockView.GetDraggableBlockController() != null)
             {
                 bool shouldDestroy = false;
+                bool isInTrashHole = false;
+
                 if (m_CurrentDraggedObject != null)
                 {
                     RectTransform blockRect = m_CurrentBlockView.GetRectTransform();
                     if (blockRect != null && m_TrashHoleController.IsBlockTouchingHole(blockRect))
                     {
+                        isInTrashHole = true;
                         shouldDestroy = true;
                         Debug.Log("DragAndDropSystem: Block is touching trash hole - will be destroyed");
                     }
                 }
 
-                if (shouldDestroy)
+                if (shouldDestroy && isInTrashHole)
                 {
                     m_TrashHoleController.DestroyBlockInHole(m_CurrentDraggedObject);
                     CleanupAnimation(m_CurrentBlockView);
                 }
                 else
                 {
-                    m_CurrentBlockView.GetDraggableBlockController().OnDragEnd(endPosition);
+                    if (IsTowerField(endPosition))
+                    {
+                        // TODO: Реализовать логику установки башни
+                        Debug.Log("DragAndDropSystem: Block placed on tower field - tower placement logic here");
+                        m_CurrentBlockView.GetDraggableBlockController().OnDragEnd(endPosition);
+                    }
+                    else
+                    {
+                        var draggable = m_CurrentBlockView.GetDraggableBlockController();
+                        draggable.SetDragType(DragType.Destroying);
+
+                        var destructionAnimation = GetOrCreateDestructionAnimation(m_CurrentBlockView);
+                        destructionAnimation.StartDestruction(() =>
+                        {
+                            if (m_CurrentDraggedObject != null)
+                            {
+                                Object.Destroy(m_CurrentDraggedObject);
+                            }
+
+                            CleanupAnimation(m_CurrentBlockView);
+                            CleanupDestructionAnimation(m_CurrentBlockView);
+                            Debug.Log("DragAndDropSystem: Block destroyed after animation");
+                        });
+
+                        Debug.Log("DragAndDropSystem: Block will be destroyed with animation");
+                    }
                 }
             }
 
@@ -373,7 +440,13 @@ namespace Core.DragAndDrop.External
                 animation.Dispose();
             }
 
+            foreach (var animation in m_DestructionAnimations.Values)
+            {
+                animation.Dispose();
+            }
+
             m_BlockAnimations.Clear();
+            m_DestructionAnimations.Clear();
         }
     }
 }
