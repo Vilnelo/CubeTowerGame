@@ -77,7 +77,6 @@ namespace Core.DragAndDrop.External
         {
             if (m_IsWaitingForPickup && m_CurrentBlockView != null)
             {
-                // Таймер завершился, блокируем скролл и берем предмет
                 ScrollEvents.RequestBlockScroll();
                 PickupBlock(m_CurrentBlockView);
                 m_IsWaitingForPickup = false;
@@ -100,7 +99,6 @@ namespace Core.DragAndDrop.External
             var draggable = blockView.GetDraggableBlockController();
             var dragBehavior = draggable.GetDragBehavior();
             
-            // Если блок Move - берем сразу без таймера
             if (dragBehavior == DragType.Move)
             {
                 ScrollEvents.RequestBlockScroll();
@@ -109,7 +107,6 @@ namespace Core.DragAndDrop.External
             }
             else if (dragBehavior == DragType.Clone)
             {
-                // Если блок Clone - запускаем таймер
                 StartPickUpTimer();
                 Debug.Log("DragAndDropSystem: Clone block - timer started for pickup");
             }
@@ -136,7 +133,6 @@ namespace Core.DragAndDrop.External
         
         private void OnStartDrag(Vector3 worldPosition)
         {
-            // Если начали двигать мышь раньше завершения таймера - останавливаем таймер
             if (m_IsWaitingForPickup)
             {
                 m_CountdownTimer.StopTimer();
@@ -144,9 +140,6 @@ namespace Core.DragAndDrop.External
                 Debug.Log("DragAndDropSystem: Drag started before timer - timer stopped");
                 return;
             }
-            
-            // Если уже взяли предмет через таймер или Move блок - ничего не делаем
-            // Логика перетаскивания будет обработана в OnDragging
         }
         
         private void OnDragging(Vector3 worldPosition)
@@ -159,7 +152,6 @@ namespace Core.DragAndDrop.External
         
         private void OnEndDrag(Vector3 worldPosition)
         {
-            // Останавливаем таймер если он был запущен
             if (m_IsWaitingForPickup)
             {
                 m_CountdownTimer.StopTimer();
@@ -172,10 +164,8 @@ namespace Core.DragAndDrop.External
                 FinishDragging(worldPosition);
             }
             
-            // Разблокируем скролл в любом случае
             ScrollEvents.RequestUnblockScroll();
             
-            // Сбрасываем состояние
             ResetDragState();
         }
         
