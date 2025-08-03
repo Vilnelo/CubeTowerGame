@@ -6,6 +6,7 @@ using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
 using Core.DragAndDrop.Runtime;
 using Core.InputSystem.External;
+using Core.Localization.Runtime;
 using Core.Tower.Runtime;
 using Core.TrashHole.Runtime;
 using Core.UI.Runtime;
@@ -252,9 +253,8 @@ namespace Core.DragAndDrop.External
             m_HasPickedUpBlock = true;
 
             m_CurrentBlockView.GetDraggableBlockController().OnDragStart();
-
-            //TODO: .Localize()
-            PopupTextController.ShowPopupText(TextBlockConstants.BlockPickedUpText);
+            
+            PopupTextController.ShowPopupText(LocalizationKeys.BlockPickedUpTextKey.Localize());
         }
 
         private void OnStartDrag(Vector3 worldPosition)
@@ -457,7 +457,7 @@ namespace Core.DragAndDrop.External
                 m_TrashHoleController.DestroyBlockInHole(m_CurrentDraggedObject);
         
                 CleanupAnimation(m_CurrentBlockView);
-                PopupTextController.ShowPopupText(TextBlockConstants.BlockTrashedText);
+                PopupTextController.ShowPopupText(LocalizationKeys.BlockTrashedTextKey.Localize());
             }
     
             ScrollEvents.RequestUnblockScroll();
@@ -471,7 +471,7 @@ namespace Core.DragAndDrop.External
                 var draggable = m_CurrentBlockView.GetDraggableBlockController();
                 draggable.SetDragType(DragType.Destroying);
 
-                PopupTextController.ShowPopupText(TextBlockConstants.BlockDestroyedText);
+                PopupTextController.ShowPopupText(LocalizationKeys.BlockDestroyedTextKey.Localize());
 
                 var destructionAnimation = GetOrCreateDestructionAnimation(m_CurrentBlockView);
                 destructionAnimation.StartDestruction(() =>
@@ -503,7 +503,7 @@ namespace Core.DragAndDrop.External
             if (m_CurrentBlockView != null && m_TowerController.TryPlaceBlockInTower(m_CurrentBlockView, towerPlacementPosition))
             {
                 CleanupAnimation(m_CurrentBlockView);
-                PopupTextController.ShowPopupText(TextBlockConstants.BlockPlacedText);
+                PopupTextController.ShowPopupText(LocalizationKeys.BlockPlacedTextKey.Localize());
         
                 m_CurrentBlockView.gameObject.SetActive(true);
         
@@ -529,7 +529,7 @@ namespace Core.DragAndDrop.External
                 }
 
                 CleanupAnimation(m_CurrentBlockView);
-                PopupTextController.ShowPopupText(TextBlockConstants.BlockDestroyedText);
+                PopupTextController.ShowPopupText(LocalizationKeys.BlockDestroyedTextKey.Localize());
             }
     
             ScrollEvents.RequestUnblockScroll();

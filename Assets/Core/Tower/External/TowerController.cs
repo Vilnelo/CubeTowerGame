@@ -1,10 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 using Core.Animations.External;
+using Core.Animations.External.PopupText.External;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
 using Core.Canvases.Runtime;
 using Core.DragAndDrop.Runtime;
+using Core.Localization.Runtime;
 using Core.SaveSystem.Runtime;
 using Core.Tower.Runtime;
 using Core.Tower.Runtime.Data;
@@ -332,6 +334,7 @@ namespace Core.Tower.External
                 basePosition = new Vector3(topBlockCenterX, highestY + blockHeight / 2, desiredPosition.z);
                 if (!IsBlockInTowerArea(blockView, basePosition))
                 {
+                    PopupTextController.ShowPopupText("NoMoreSpaceText".Localize());
                     return false;
                 }
             }

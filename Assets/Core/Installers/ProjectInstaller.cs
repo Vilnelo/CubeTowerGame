@@ -2,6 +2,8 @@ using Core.AssetManagement.External;
 using Core.AssetManagement.Runtime;
 using Core.ConfigSystem.External;
 using Core.ConfigSystem.Runtime;
+using Core.Localization.External;
+using Core.Localization.Runtime;
 using Core.SaveSystem.External;
 using Core.Scene.External;
 using Core.Scene.Runtime;
@@ -20,11 +22,21 @@ namespace Core.Installers
 
             InstallSceneController();
             InstallAssetLoader();
+            InstallLocalization();
             InstallConfigSystem();
             InstallSaveSystem();
             InstallTimerController();
 
             LogDebug("Global services installed successfully");
+        }
+        
+        private void InstallLocalization()
+        {
+            Container.BindInterfacesTo<LocalizationController>()
+                .AsSingle()
+                .NonLazy();
+
+            LogDebug("LocalizationController bound successfully");
         }
         
         private void InstallSaveSystem()

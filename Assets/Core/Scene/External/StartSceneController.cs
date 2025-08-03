@@ -1,5 +1,6 @@
 using Core.AssetManagement.Runtime;
 using Core.Canvases.Runtime;
+using Core.Localization.Runtime;
 using Core.Scene.Runtime;
 using UnityEngine;
 using Zenject;
@@ -13,13 +14,13 @@ namespace Core.Scene.External
         [Inject] private IAssetLoader m_AssetLoader;
 
         private const string m_StartButtonPrefabAddress = "StartButtonView";
-        private const string m_StartButtonTextKey = "START GAME";
 
         private StartButtonView m_StartButtonView;
 
         public void Initialize()
         {
             Debug.Log("StartSceneController initialized");
+            
             LoadAndSetupUI();
         }
 
@@ -58,8 +59,7 @@ namespace Core.Scene.External
 
             if (m_StartButtonView.Text != null)
             {
-                //TODO: Добавить метод .Localize()
-                m_StartButtonView.Text.text = m_StartButtonTextKey;
+                m_StartButtonView.Text.text = LocalizationKeys.StartGameTextKey.Localize();
             }
 
             if (m_StartButtonView.Button != null)
