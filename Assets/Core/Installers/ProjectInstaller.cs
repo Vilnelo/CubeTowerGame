@@ -2,6 +2,7 @@ using Core.AssetManagement.External;
 using Core.AssetManagement.Runtime;
 using Core.ConfigSystem.External;
 using Core.ConfigSystem.Runtime;
+using Core.SaveSystem.External;
 using Core.Scene.External;
 using Core.Scene.Runtime;
 using UnityEngine;
@@ -20,9 +21,20 @@ namespace Core.Installers
             InstallSceneController();
             InstallAssetLoader();
             InstallConfigSystem();
+            InstallSaveSystem();
             InstallTimerController();
 
             LogDebug("Global services installed successfully");
+        }
+        
+        private void InstallSaveSystem()
+        {
+            Container.BindInterfacesTo<AutoSaveController>()
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
+
+            LogDebug("AutoSave system bound successfully");
         }
 
         private void InstallSceneController()
