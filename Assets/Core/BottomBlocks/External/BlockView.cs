@@ -10,7 +10,8 @@ namespace Core.BottomBlocks.External
         [SerializeField] private Image m_BlockSprite;
         [SerializeField] private RectTransform m_LayoutElement;
         [SerializeField] private DraggableBlockController m_DraggableBlockController;
-
+        
+        //TODO: Данные если нужно реализовать проверку по цвету или ID блока
         private string m_ColorName;
         private int m_Id;
 
