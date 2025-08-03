@@ -219,25 +219,9 @@ namespace Core.DragAndDrop.External
     
             if (m_HasPickedUpBlock && !m_IsDragging && m_CurrentBlockView != null)
             {
-                var dragBehavior = m_CurrentBlockView.GetDraggableBlockController().GetDragBehavior();
-                if (dragBehavior == DragType.Move)
-                {
-                    Vector3 currentPosition = m_CurrentBlockView.transform.position;
-                    if (m_TowerController.IsBlockInTowerArea(m_CurrentBlockView, currentPosition))
-                    {
-                        m_TowerController.TryPlaceBlockInTower(m_CurrentBlockView, currentPosition);
-                        m_TowerController.SaveTowerState();
-                        Debug.Log("DragAndDropSystem: Block returned to tower at original position");
-                    }
-                }
-        
-                var animation = GetOrCreateAnimation(m_CurrentBlockView);
-                animation.ScaleDown(() => {
-                    ScrollEvents.RequestUnblockScroll();
-                    ResetDragState();
-                });
-
-                Debug.Log("DragAndDropSystem: Mouse up without drag - scaling down with callback");
+                Vector3 currentPosition = m_CurrentBlockView.transform.position;
+                FinishDragging(currentPosition);
+                Debug.Log("DragAndDropSystem: Mouse up without drag - treating as finished drag");
             }
         }
 

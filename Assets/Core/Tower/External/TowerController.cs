@@ -26,6 +26,8 @@ namespace Core.Tower.External
         private readonly List<BlockView> m_ActiveBlocks = new List<BlockView>();
         private TowerJumpAnimation m_JumpAnimation;
         private TowerCollapseAnimation m_CollapseAnimation;
+        
+        private bool m_IsCollapseAnimationPlaying = false;
 
         public void Initialize()
         {
@@ -87,6 +89,12 @@ namespace Core.Tower.External
                 return false;
             }
             
+            if (m_IsCollapseAnimationPlaying)
+            {
+                Debug.Log("TowerController: Cannot place block - collapse animation is playing");
+                return false;
+            }
+            
             if (m_ActiveBlocks.Count == 0)
             {
                 bool canPlace = IsBlockInTowerArea(blockView, position);
@@ -106,6 +114,12 @@ namespace Core.Tower.External
             if (blockView == null)
             {
                 Debug.LogError("TowerController: BlockView is null");
+                return false;
+            }
+            
+            if (m_IsCollapseAnimationPlaying)
+            {
+                Debug.Log("TowerController: Cannot place block - collapse animation is playing");
                 return false;
             }
             
@@ -495,6 +509,8 @@ namespace Core.Tower.External
         {
             Debug.Log($"TowerController: Starting animated collapse from index {startIndex}");
             
+            m_IsCollapseAnimationPlaying = true;
+            
             List<GameObject> blocksToAnimate = new List<GameObject>();
             List<Vector3> targetPositions = new List<Vector3>();
 
@@ -535,6 +551,8 @@ namespace Core.Tower.External
         private void OnCollapseAnimationComplete()
         {
             Debug.Log("TowerController: Collapse animation completed");
+            
+            m_IsCollapseAnimationPlaying = false;
             
             foreach (var block in m_ActiveBlocks.Where(b => b != null))
             {
