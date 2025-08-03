@@ -222,7 +222,7 @@ namespace Core.Tower.External
                 Vector3[] existingCorners = new Vector3[4];
                 existingRect.GetWorldCorners(existingCorners);
 
-                float existingTopY = existingCorners[2].y; // Верхний край блока
+                float existingTopY = existingCorners[2].y;
 
                 if (existingTopY > highestY)
                 {
@@ -239,6 +239,16 @@ namespace Core.Tower.External
 
             Debug.Log($"TowerController: Found top block {topBlock.GetColorName()} at Y: {highestY}");
             
+            RectTransform topBlockRect = topBlock.GetRectTransform();
+            Vector3[] topBlockCorners = new Vector3[4];
+            topBlockRect.GetWorldCorners(topBlockCorners);
+
+            float topBlockMinX = topBlockCorners[0].x;
+            float topBlockMaxX = topBlockCorners[2].x;
+            float topBlockCenterX = (topBlockMinX + topBlockMaxX) / 2;
+            float topBlockCenterY = (topBlockCorners[0].y + topBlockCorners[2].y) / 2;
+            
+            
             Vector3 originalPosition = blockView.transform.position;
             blockView.transform.position = desiredPosition;
 
@@ -249,26 +259,47 @@ namespace Core.Tower.External
             blockRect.GetWorldCorners(blockCorners);
 
             float blockHeight = blockCorners[2].y - blockCorners[0].y;
+            float blockMinX = blockCorners[0].x;
+            float blockMaxX = blockCorners[2].x;
+            float blockCenterY = (blockCorners[0].y + blockCorners[2].y) / 2;
             
             blockView.transform.position = originalPosition;
             
-            RectTransform topBlockRect = topBlock.GetRectTransform();
-            Vector3[] topBlockCorners = new Vector3[4];
-            topBlockRect.GetWorldCorners(topBlockCorners);
-
-            float topBlockMinX = topBlockCorners[0].x;
-            float topBlockMaxX = topBlockCorners[2].x;
-            float topBlockCenterX = (topBlockMinX + topBlockMaxX) / 2;
-
-            float blockMinX = blockCorners[0].x;
-            float blockMaxX = blockCorners[2].x;
+            bool hasXOverlapWithAnyBlock = false;
+            foreach (var existingBlock in m_ActiveBlocks.Where(block => block != null))
+            {
+                RectTransform existingRect = existingBlock.GetRectTransform();
+                Vector3[] existingCorners = new Vector3[4];
+                existingRect.GetWorldCorners(existingCorners);
+                
+                float existingMinX = existingCorners[0].x;
+                float existingMaxX = existingCorners[2].x;
+                
+                bool overlapWithThis = (blockMinX <= existingMaxX && blockMaxX >= existingMinX);
+                if (overlapWithThis)
+                {
+                    hasXOverlapWithAnyBlock = true;
+                    Debug.Log($"TowerController: Block overlaps with {existingBlock.GetColorName()} by X");
+                    break;
+                }
+            }
             
-            bool hasXOverlap = (blockMinX <= topBlockMaxX && blockMaxX >= topBlockMinX);
+            bool isAboveTopBlockCenter = blockCenterY > topBlockCenterY;
+            
+            Debug.Log($"TowerController: Block center Y: {blockCenterY:F2}, Top block center Y: {topBlockCenterY:F2}");
+            Debug.Log($"TowerController: X overlap with any block: {hasXOverlapWithAnyBlock}, Above top center: {isAboveTopBlockCenter}");
 
-            if (!hasXOverlap)
+            if (!hasXOverlapWithAnyBlock)
             {
                 Debug.LogWarning(
-                    $"TowerController: Block {blockView.GetColorName()} does not overlap with top block {topBlock.GetColorName()} by X coordinate");
+                    $"TowerController: Block {blockView.GetColorName()} does not overlap with any block in tower by X coordinate");
+                return false;
+            }
+            
+            if (!isAboveTopBlockCenter)
+            {
+                Debug.LogWarning(
+                    $"TowerController: Block {blockView.GetColorName()} is not above the center of top block {topBlock.GetColorName()}");
                 return false;
             }
             
@@ -487,7 +518,7 @@ namespace Core.Tower.External
                 Vector3[] corners = new Vector3[4];
                 blockRect.GetWorldCorners(corners);
                 float blockHeight = corners[2].y - corners[0].y;
-                baseY = newPosition.y + blockHeight / 2; // Верх блока после перемещения
+                baseY = newPosition.y + blockHeight / 2;
             }
             
             if (blocksToAnimate.Count > 0)
