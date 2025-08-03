@@ -6,6 +6,7 @@ using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
 using Core.DragAndDrop.Runtime;
 using Core.InputSystem.External;
+using Core.Tower.Runtime;
 using Core.TrashHole.Runtime;
 using Core.UI.Runtime;
 using UnityEngine;
@@ -22,6 +23,8 @@ namespace Core.DragAndDrop.External
         [Inject] private ICoreUIController m_CoreUIController;
         [Inject] private ITimerController m_TimerController;
         [Inject] private ITrashHoleController m_TrashHoleController;
+        [Inject] private ITowerController m_TowerController;
+        [Inject] private IBlockFactoryController m_BlockFactoryController;
 
         private GameObject m_CurrentDraggedObject;
         private Camera m_MainCamera;
@@ -37,7 +40,7 @@ namespace Core.DragAndDrop.External
         private Dictionary<RectTransform, DestructionAnimation> m_DestructionAnimations =
             new Dictionary<RectTransform, DestructionAnimation>();
 
-        private const float m_LerpForce = 10f;
+        private const float m_LerpForce = 1000f;
         private const float m_DelayTime = 0.3f;
 
         public void Initialize()
@@ -165,16 +168,22 @@ namespace Core.DragAndDrop.External
             }
 
             var animation = GetOrCreateAnimation(blockView);
-
+            
             if (animation.IsAnimating())
             {
                 Debug.Log("DragAndDropSystem: Animation in progress - ignoring click");
                 return;
             }
+            
+            if (!animation.IsAtReferenceScale())
+            {
+                Debug.Log("DragAndDropSystem: Block not at reference scale - ignoring click");
+                return;
+            }
 
             var draggable = blockView.GetDraggableBlockController();
             var dragBehavior = draggable.GetDragBehavior();
-            
+
             if (dragBehavior == DragType.Destroying)
             {
                 Debug.Log("DragAndDropSystem: Block is being destroyed - ignoring click");
@@ -207,19 +216,28 @@ namespace Core.DragAndDrop.External
                 Debug.Log("DragAndDropSystem: Mouse up - timer stopped");
                 return;
             }
-
+    
             if (m_HasPickedUpBlock && !m_IsDragging && m_CurrentBlockView != null)
             {
-                var animation = GetOrCreateAnimation(m_CurrentBlockView);
-
-                if (!animation.IsAtReferenceScale())
+                var dragBehavior = m_CurrentBlockView.GetDraggableBlockController().GetDragBehavior();
+                if (dragBehavior == DragType.Move)
                 {
-                    animation.ScaleDown();
+                    Vector3 currentPosition = m_CurrentBlockView.transform.position;
+                    if (m_TowerController.IsBlockInTowerArea(m_CurrentBlockView, currentPosition))
+                    {
+                        m_TowerController.TryPlaceBlockInTower(m_CurrentBlockView, currentPosition);
+                        m_TowerController.SaveTowerState();
+                        Debug.Log("DragAndDropSystem: Block returned to tower at original position");
+                    }
                 }
+        
+                var animation = GetOrCreateAnimation(m_CurrentBlockView);
+                animation.ScaleDown(() => {
+                    ScrollEvents.RequestUnblockScroll();
+                    ResetDragState();
+                });
 
-                ScrollEvents.RequestUnblockScroll();
-                ResetDragState();
-                Debug.Log("DragAndDropSystem: Mouse up without drag - scaling down");
+                Debug.Log("DragAndDropSystem: Mouse up without drag - scaling down with callback");
             }
         }
 
@@ -233,10 +251,16 @@ namespace Core.DragAndDrop.External
             }
             else if (dragBehavior == DragType.Move)
             {
+                m_TowerController.RemoveBlockFromTower(m_CurrentBlockView);
+                m_TowerController.SaveTowerState();
+        
                 m_CurrentDraggedObject = m_CurrentBlockView.GetDraggableBlockController().GetGameObject();
             }
 
-            m_CurrentDraggedObject.transform.SetAsLastSibling();
+            if (m_CurrentDraggedObject != null)
+            {
+                m_CurrentDraggedObject.transform.SetAsLastSibling();
+            }
 
             var animation = GetOrCreateAnimation(m_CurrentBlockView);
             animation.ScaleUp();
@@ -244,7 +268,7 @@ namespace Core.DragAndDrop.External
             m_HasPickedUpBlock = true;
 
             m_CurrentBlockView.GetDraggableBlockController().OnDragStart();
-            
+
             //TODO: .Localize()
             PopupTextController.ShowPopupText(TextBlockConstants.BlockPickedUpText);
         }
@@ -280,23 +304,35 @@ namespace Core.DragAndDrop.External
             {
                 m_CountdownTimer.StopTimer();
                 m_IsWaitingForPickup = false;
+                ScrollEvents.RequestUnblockScroll();
+                ResetDragState();
                 Debug.Log("DragAndDropSystem: Mouse released - timer stopped");
+                return;
             }
 
             if (m_CurrentDraggedObject != null && m_IsDragging && m_CurrentBlockView != null)
             {
                 FinishDragging(worldPosition);
-
-                var animation = GetOrCreateAnimation(m_CurrentBlockView);
-                animation.ScaleDown();
             }
-
-            ScrollEvents.RequestUnblockScroll();
-            ResetDragState();
+            else
+            {
+                ScrollEvents.RequestUnblockScroll();
+                ResetDragState();
+            }
         }
 
         private void ResetDragState()
         {
+            if (m_CurrentBlockView != null)
+            {
+                var animation = GetOrCreateAnimation(m_CurrentBlockView);
+                if (!animation.IsAtReferenceScale())
+                {
+                    animation.ForceResetToReferenceScale();
+                    Debug.Log("DragAndDropSystem: Force reset scale in ResetDragState");
+                }
+            }
+
             m_CurrentBlockView = null;
             m_CurrentDraggedObject = null;
             m_IsDragging = false;
@@ -330,25 +366,28 @@ namespace Core.DragAndDrop.External
                 Debug.LogError("DragAndDropSystem: Can only drag BlockView objects for now");
                 return;
             }
-
-            var draggedBlockView = Object.Instantiate(originalBlock.GetBlockPrefab(),
-                originalBlock.GetRectTransform().position,
-                originalBlock.GetRectTransform().rotation,
-                m_CoreUIController.GetCoreView().DraggingBlockView);
+            
+            var originalId = originalBlock.GetId();
+            
+            var draggedBlockView = m_BlockFactoryController.CreateBlockById(
+                originalId,
+                m_CoreUIController.GetCoreView().DraggingBlockView,
+                DragType.Move
+            );
 
             if (draggedBlockView != null)
             {
-                m_CurrentDraggedObject = draggedBlockView;
+                draggedBlockView.transform.position = originalBlock.GetRectTransform().position;
+                draggedBlockView.transform.rotation = originalBlock.GetRectTransform().rotation;
 
-                if (!draggedBlockView.TryGetComponent<BlockView>(out var newBlockView))
-                {
-                    Debug.LogError("DragAndDropSystem: cannot find DraggableBlockView");
-                    return;
-                }
+                m_CurrentDraggedObject = draggedBlockView.gameObject;
+                m_CurrentBlockView = draggedBlockView;
 
-                m_CurrentBlockView = newBlockView;
-
-                Debug.Log("DragAndDropSystem: Created dragged object");
+                Debug.Log($"DragAndDropSystem: Created cloned object with ID {originalId} and DragType.Move");
+            }
+            else
+            {
+                Debug.LogError($"DragAndDropSystem: Failed to create cloned block with ID {originalId}");
             }
         }
 
@@ -363,72 +402,154 @@ namespace Core.DragAndDrop.External
             }
         }
 
-        private bool IsTowerField(Vector3 position)
-        {
-            // TODO: Реализовать проверку является ли позиция полем башни
-            return false;
-        }
-
         private void FinishDragging(Vector3 endPosition)
         {
-            if (m_CurrentBlockView.GetDraggableBlockController() != null)
+            if (m_CurrentBlockView == null || m_CurrentBlockView.GetDraggableBlockController() == null)
             {
-                bool shouldDestroy = false;
-                bool isInTrashHole = false;
+                Debug.LogWarning("DragAndDropSystem: CurrentBlockView or DraggableBlockController is null");
+                ScrollEvents.RequestUnblockScroll();
+                ResetDragState();
+                return;
+            }
 
-                if (m_CurrentDraggedObject != null)
-                {
-                    RectTransform blockRect = m_CurrentBlockView.GetRectTransform();
-                    if (blockRect != null && m_TrashHoleController.IsBlockTouchingHole(blockRect))
-                    {
-                        isInTrashHole = true;
-                        shouldDestroy = true;
-                        Debug.Log("DragAndDropSystem: Block is touching trash hole - will be destroyed");
-                    }
-                }
+            bool shouldDestroy = false;
+            bool isInTrashHole = false;
+            bool shouldPlaceInTower = false;
+            Vector3 towerPlacementPosition = Vector3.zero;
 
-                if (shouldDestroy && isInTrashHole)
+            if (m_CurrentDraggedObject != null)
+            {
+                RectTransform blockRect = m_CurrentBlockView.GetRectTransform();
+                
+                if (blockRect != null && m_TrashHoleController.IsBlockTouchingHole(blockRect))
                 {
-                    m_TrashHoleController.DestroyBlockInHole(m_CurrentDraggedObject);
-                    CleanupAnimation(m_CurrentBlockView);
-                    //TODO: .Localize()
-                    PopupTextController.ShowPopupText(TextBlockConstants.BlockTrashedText);
+                    isInTrashHole = true;
+                    shouldDestroy = true;
+                    Debug.Log("DragAndDropSystem: Block is touching trash hole - will be destroyed");
                 }
                 else
                 {
-                    if (IsTowerField(endPosition))
+                    Vector3 correctedEndPosition = new Vector3(endPosition.x, endPosition.y, 0f);
+
+                    if (m_TowerController.IsBlockInTowerArea(m_CurrentBlockView, correctedEndPosition))
                     {
-                        // TODO: Реализовать логику установки башни
-                        Debug.Log("DragAndDropSystem: Block placed on tower field - tower placement logic here");
-                        m_CurrentBlockView.GetDraggableBlockController().OnDragEnd(endPosition);
-                    }
-                    else
-                    {
-                        var draggable = m_CurrentBlockView.GetDraggableBlockController();
-                        draggable.SetDragType(DragType.Destroying);
-
-                        //TODO: .Localize()
-                        PopupTextController.ShowPopupText(TextBlockConstants.BlockDestroyedText);
-                        
-                        var destructionAnimation = GetOrCreateDestructionAnimation(m_CurrentBlockView);
-                        destructionAnimation.StartDestruction(() =>
-                        {
-                            if (m_CurrentDraggedObject != null)
-                            {
-                                Object.Destroy(m_CurrentDraggedObject);
-                            }
-
-                            CleanupAnimation(m_CurrentBlockView);
-                            CleanupDestructionAnimation(m_CurrentBlockView);
-                            Debug.Log("DragAndDropSystem: Block destroyed after animation");
-                        });
-
-                        Debug.Log("DragAndDropSystem: Block will be destroyed with animation");
+                        shouldPlaceInTower = true;
+                        towerPlacementPosition = correctedEndPosition;
+                        Debug.Log("DragAndDropSystem: Block can be placed in tower - waiting for animation");
                     }
                 }
             }
+            
+            var animation = GetOrCreateAnimation(m_CurrentBlockView);
+            
+            if (shouldDestroy && isInTrashHole)
+            {
+                animation.ScaleDown(() => {
+                    HandleTrashDestruction();
+                });
+            }
+            else if (shouldPlaceInTower)
+            {
+                animation.ScaleDown(() => {
+                    OnAnimationCompleteForTowerPlacement(towerPlacementPosition);
+                });
+                Debug.Log("DragAndDropSystem: Started scale down animation before tower placement");
+            }
+            else
+            {
+                animation.ScaleDown(() => {
+                    HandleRegularDestruction();
+                });
+                Debug.Log("DragAndDropSystem: Block will be destroyed with animation");
+            }
 
             Debug.Log("DragAndDropSystem: Finished dragging");
+        }
+
+        private void HandleTrashDestruction()
+        {
+            if (m_CurrentBlockView != null)
+            {
+                m_TrashHoleController.DestroyBlockInHole(m_CurrentDraggedObject);
+        
+                CleanupAnimation(m_CurrentBlockView);
+                PopupTextController.ShowPopupText(TextBlockConstants.BlockTrashedText);
+            }
+    
+            ScrollEvents.RequestUnblockScroll();
+            ResetDragState();
+        }
+
+        private void HandleRegularDestruction()
+        {
+            if (m_CurrentBlockView != null)
+            {
+                var draggable = m_CurrentBlockView.GetDraggableBlockController();
+                draggable.SetDragType(DragType.Destroying);
+
+                PopupTextController.ShowPopupText(TextBlockConstants.BlockDestroyedText);
+
+                var destructionAnimation = GetOrCreateDestructionAnimation(m_CurrentBlockView);
+                destructionAnimation.StartDestruction(() =>
+                {
+                    if (m_CurrentDraggedObject != null)
+                    {
+                        Object.Destroy(m_CurrentDraggedObject);
+                    }
+
+                    CleanupAnimation(m_CurrentBlockView);
+                    CleanupDestructionAnimation(m_CurrentBlockView);
+                    Debug.Log("DragAndDropSystem: Block destroyed after animation");
+            
+                    ScrollEvents.RequestUnblockScroll();
+                    ResetDragState();
+                });
+
+                Debug.Log("DragAndDropSystem: Block destruction animation started");
+            }
+            else
+            {
+                ScrollEvents.RequestUnblockScroll();
+                ResetDragState();
+            }
+        }
+        
+        private void OnAnimationCompleteForTowerPlacement(Vector3 towerPlacementPosition)
+        {
+            if (m_CurrentBlockView != null && m_TowerController.TryPlaceBlockInTower(m_CurrentBlockView, towerPlacementPosition))
+            {
+                CleanupAnimation(m_CurrentBlockView);
+                PopupTextController.ShowPopupText(TextBlockConstants.BlockPlacedText);
+        
+                m_CurrentBlockView.gameObject.SetActive(true);
+        
+                var canvasRenderer = m_CurrentBlockView.GetComponent<CanvasRenderer>();
+                if (canvasRenderer != null)
+                {
+                    canvasRenderer.SetAlpha(1.0f);
+                }
+        
+                Canvas.ForceUpdateCanvases();
+                
+                m_TowerController.SaveTowerState();
+
+                Debug.Log($"DragAndDropSystem: Block {m_CurrentBlockView.GetColorName()} placed in tower after animation completion");
+            }
+            else
+            {
+                Debug.LogWarning("DragAndDropSystem: Failed to place block in tower after animation - destroying");
+
+                if (m_CurrentDraggedObject != null)
+                {
+                    Object.Destroy(m_CurrentDraggedObject);
+                }
+
+                CleanupAnimation(m_CurrentBlockView);
+                PopupTextController.ShowPopupText(TextBlockConstants.BlockDestroyedText);
+            }
+    
+            ScrollEvents.RequestUnblockScroll();
+            ResetDragState();
         }
 
         private void UnsubscribeFromInputEvents()

@@ -1,8 +1,10 @@
 using Core.Animations.External.PopupText.External;
 using Core.BottomBlocks.External;
+using Core.BottomBlocks.Runtime;
 using Core.Canvases.External;
 using Core.DragAndDrop.External;
 using Core.InputSystem.External;
+using Core.Tower.External;
 using Core.TrashHole.External;
 using Core.UI.External;
 using UnityEngine;
@@ -33,6 +35,14 @@ namespace Core.Installers
 
             Container.BindInterfacesTo<LayoutUIController>()
                 .AsSingle();
+            
+            Container.BindInterfacesTo<BlockFactoryController>()
+                .AsSingle()
+                .NonLazy();
+
+            Container.BindInterfacesTo<TowerController>()
+                .AsSingle()
+                .NonLazy();
 
             Container.BindInterfacesTo<BottomBlocksController>()
                 .AsSingle();

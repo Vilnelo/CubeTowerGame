@@ -1,4 +1,5 @@
-﻿using DG.Tweening;
+﻿using System;
+using DG.Tweening;
 using UnityEngine;
 
 namespace Core.Animations.External
@@ -54,7 +55,7 @@ namespace Core.Animations.External
             Debug.Log("PickUpAnimation: Started scale up animation");
         }
 
-        public void ScaleDown()
+        public void ScaleDown(Action onComplete = null)
         {
             if (m_RectTransform == null)
                 return;
@@ -74,6 +75,8 @@ namespace Core.Animations.External
                         m_RectTransform.localScale = m_ReferenceScale;
                     }
 
+                    onComplete?.Invoke();
+                    
                     Debug.Log("PickUpAnimation: Scale down completed");
                 });
 
