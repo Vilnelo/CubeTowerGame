@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Core.Animations.External;
+using Core.Animations.External.PopupText.External;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
 using Core.DragAndDrop.Runtime;
@@ -243,6 +244,9 @@ namespace Core.DragAndDrop.External
             m_HasPickedUpBlock = true;
 
             m_CurrentBlockView.GetDraggableBlockController().OnDragStart();
+            
+            //TODO: .Localize()
+            PopupTextController.ShowPopupText(TextBlockConstants.BlockPickedUpText);
         }
 
         private void OnStartDrag(Vector3 worldPosition)
@@ -387,6 +391,8 @@ namespace Core.DragAndDrop.External
                 {
                     m_TrashHoleController.DestroyBlockInHole(m_CurrentDraggedObject);
                     CleanupAnimation(m_CurrentBlockView);
+                    //TODO: .Localize()
+                    PopupTextController.ShowPopupText(TextBlockConstants.BlockTrashedText);
                 }
                 else
                 {
@@ -401,6 +407,9 @@ namespace Core.DragAndDrop.External
                         var draggable = m_CurrentBlockView.GetDraggableBlockController();
                         draggable.SetDragType(DragType.Destroying);
 
+                        //TODO: .Localize()
+                        PopupTextController.ShowPopupText(TextBlockConstants.BlockDestroyedText);
+                        
                         var destructionAnimation = GetOrCreateDestructionAnimation(m_CurrentBlockView);
                         destructionAnimation.StartDestruction(() =>
                         {

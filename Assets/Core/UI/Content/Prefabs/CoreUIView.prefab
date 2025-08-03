@@ -777,6 +777,7 @@ RectTransform:
   m_Children:
   - {fileID: 2810350976885519084}
   - {fileID: 3468671526579803603}
+  - {fileID: 6002516791572366585}
   m_Father: {fileID: 6929826882140674068}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -798,6 +799,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_ScrollRect: {fileID: 679266225349881205}
   m_ScrollContent: {fileID: 4181494637256963902}
+  m_PopupTextParrent: {fileID: 6002516791572366585}
 --- !u!1 &2076810883336138337
 GameObject:
   m_ObjectHideFlags: 0
@@ -1671,6 +1673,41 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 0.85
+--- !u!1 &2970237087302422247
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6002516791572366585}
+  m_Layer: 5
+  m_Name: PopupTextParent
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &6002516791572366585
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2970237087302422247}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3751244933980319737}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 1}
+  m_AnchorMax: {x: 0.5, y: 1}
+  m_AnchoredPosition: {x: 0, y: 50}
+  m_SizeDelta: {x: 800, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &3071127491829188971
 GameObject:
   m_ObjectHideFlags: 0
@@ -1850,7 +1887,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_TrashHoleImage: {fileID: 521608779476781429}
   m_TrashHole: {fileID: 1850620595839088833}
-  m_ShowDebugGizmos: 1
   m_OvalSizeMultiplier: 1.01
   m_MaskView: {fileID: 71025342943201627}
 --- !u!1 &3607878127126642490

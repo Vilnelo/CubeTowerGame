@@ -7,6 +7,7 @@ namespace Core.BottomBlocks.External
     {
         [SerializeField] private ScrollRect m_ScrollRect;
         [SerializeField] private Transform m_ScrollContent;
+        [SerializeField] private RectTransform m_PopupTextParrent;
 
         public Transform GetScrollContent()
         {
@@ -16,6 +17,11 @@ namespace Core.BottomBlocks.External
         public ScrollRect GetScrollRect()
         {
             return m_ScrollRect;
+        }
+
+        public RectTransform GetPopupTextParrent()
+        {
+            return m_PopupTextParrent;
         }
     }
 }

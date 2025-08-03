@@ -1,3 +1,4 @@
+using Core.Animations.External.PopupText.External;
 using Core.BottomBlocks.External;
 using Core.Canvases.External;
 using Core.DragAndDrop.External;
@@ -20,6 +21,10 @@ namespace Core.Installers
                 .AsSingle();
 
             Container.BindInterfacesTo<CoreUIController>()
+                .AsSingle()
+                .NonLazy();
+            
+            Container.BindInterfacesAndSelfTo<PopupTextController>()
                 .AsSingle()
                 .NonLazy();
 
