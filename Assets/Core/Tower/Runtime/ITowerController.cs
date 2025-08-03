@@ -6,6 +6,7 @@ namespace Core.Tower.Runtime
     public interface ITowerController
     {
         bool IsBlockInTowerArea(BlockView blockView, Vector3 position);
+        bool CanPlaceBlockInTower(BlockView blockView, Vector3 position);
         bool TryPlaceBlockInTower(BlockView blockView, Vector3 position);
         void RemoveBlockFromTower(BlockView blockView);
         void SaveTowerState();

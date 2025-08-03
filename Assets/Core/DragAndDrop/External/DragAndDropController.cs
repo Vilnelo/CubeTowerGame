@@ -431,7 +431,7 @@ namespace Core.DragAndDrop.External
                 {
                     Vector3 correctedEndPosition = new Vector3(endPosition.x, endPosition.y, 0f);
 
-                    if (m_TowerController.IsBlockInTowerArea(m_CurrentBlockView, correctedEndPosition))
+                    if (m_TowerController.CanPlaceBlockInTower(m_CurrentBlockView, correctedEndPosition))
                     {
                         shouldPlaceInTower = true;
                         towerPlacementPosition = correctedEndPosition;

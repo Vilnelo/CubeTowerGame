@@ -12,16 +12,14 @@ namespace Core.Tower.Runtime.Data
         public float PositionY;
         public float PositionZ;
         public int LayerIndex;
-        public int TowerBlockInstanceId;
 
-        public TowerBlockData(int blockId, Vector3 position, int layerIndex, int towerBlockInstanceId)
+        public TowerBlockData(int blockId, Vector3 position, int layerIndex)
         {
             this.BlockId = blockId;
             this.PositionX = position.x;
             this.PositionY = position.y;
             this.PositionZ = position.z;
             this.LayerIndex = layerIndex;
-            this.TowerBlockInstanceId = towerBlockInstanceId;
         }
 
         public Vector3 GetPosition()
