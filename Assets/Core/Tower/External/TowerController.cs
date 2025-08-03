@@ -42,11 +42,11 @@ namespace Core.Tower.External
                 Debug.LogError("TowerController: Tower area not found!");
                 return;
             }
-            
+
             m_JumpAnimation = new TowerJumpAnimation();
             m_CollapseAnimation = new TowerCollapseAnimation();
             m_SaveController.RegisterAutoSave(m_SaveData);
-            
+
             LoadTowerState();
 
             Debug.Log("TowerController: Initialized successfully");
@@ -59,18 +59,18 @@ namespace Core.Tower.External
                 Debug.LogWarning("TowerController: AreaDetector or BlockView is null");
                 return false;
             }
-            
+
             var coreView = m_CoreUIController.GetCoreView();
             Transform towerParent = coreView.TowerView.Tower;
 
             Debug.Log($"TowerController: Checking position {position} against tower area {towerParent.name}");
-            
+
             Vector3 originalPosition = blockView.transform.position;
-            
+
             blockView.transform.position = position;
-            
+
             bool isCompletelyInside = m_AreaDetector.IsBlockCompletelyInside(blockView.GetRectTransform());
-            
+
             blockView.transform.position = originalPosition;
 
             Debug.Log($"TowerController: Block {blockView.GetColorName()} at {position} - " +
@@ -95,9 +95,8 @@ namespace Core.Tower.External
             }
             else
             {
-                Vector3 finalPosition;
-                bool canPlace = TryFindPlacementAboveTopBlock(blockView, position, out finalPosition);
-                Debug.Log($"TowerController: Block can be placed above top block: {canPlace}");
+                bool canPlace = TryFindPlacementAboveTopBlockWithOffset(blockView, position, out var finalPosition);
+                Debug.Log($"TowerController: Block can be placed above top block with offset: {canPlace}");
                 return canPlace;
             }
         }
@@ -110,31 +109,31 @@ namespace Core.Tower.External
                 return false;
             }
             
-            if (!CanPlaceBlockInTower(blockView, position))
-            {
-                Debug.Log($"TowerController: Block {blockView.GetColorName()} cannot be placed at this position");
-                return false;
-            }
-
-            Vector3 finalPosition = position;
-            
             if (m_ActiveBlocks.Count == 0)
             {
-                Debug.Log($"TowerController: Placing first block at position {position}");
-                PlaceBlockWithAnimation(blockView, position);
+                if (!IsBlockInTowerArea(blockView, position))
+                {
+                    Debug.Log($"TowerController: First block {blockView.GetColorName()} not completely in tower area");
+                    return false;
+                }
+
+                Debug.Log($"TowerController: Placing first block without animation at position {position}");
+                PlaceBlockDirectly(blockView, position);
                 return true;
             }
             else
             {
-                if (TryFindPlacementAboveTopBlock(blockView, position, out finalPosition))
+                Vector3 finalPosition;
+                if (TryFindPlacementAboveTopBlockWithOffset(blockView, position, out finalPosition))
                 {
-                    Debug.Log($"TowerController: Placing block above top block at position {finalPosition}");
+                    Debug.Log(
+                        $"TowerController: Placing block above top block with animation at position {finalPosition}");
                     PlaceBlockWithAnimation(blockView, finalPosition);
                     return true;
                 }
                 else
                 {
-                    Debug.LogError("TowerController: Unexpected error - CanPlaceBlockInTower returned true but TryFindPlacementAboveTopBlock failed");
+                    Debug.Log($"TowerController: Block {blockView.GetColorName()} cannot be placed above top block");
                     return false;
                 }
             }
@@ -143,7 +142,7 @@ namespace Core.Tower.External
         private void PlaceBlockWithAnimation(BlockView blockView, Vector3 targetPosition)
         {
             Canvas canvas = m_MainCanvas.GetCanvas();
-            
+
             if (canvas == null)
             {
                 Debug.LogWarning("TowerController: Main canvas not found, placing block without animation");
@@ -152,11 +151,9 @@ namespace Core.Tower.External
             }
 
             Debug.Log($"TowerController: Starting jump animation for {blockView.GetColorName()} to {targetPosition}");
-            
-            m_JumpAnimation.StartJumpAnimation(blockView.gameObject, targetPosition, canvas, () =>
-            {
-                OnBlockAnimationComplete(blockView, targetPosition);
-            });
+
+            m_JumpAnimation.StartJumpAnimation(blockView.gameObject, targetPosition, canvas,
+                () => { OnBlockAnimationComplete(blockView, targetPosition); });
         }
 
         private void OnBlockAnimationComplete(BlockView blockView, Vector3 finalPosition)
@@ -164,22 +161,22 @@ namespace Core.Tower.External
             Debug.Log($"TowerController: Animation completed for {blockView.GetColorName()}");
             
             blockView.transform.position = finalPosition;
-            
+
             RectTransform blockRect = blockView.GetRectTransform();
             if (blockRect != null)
             {
                 blockRect.ForceUpdateRectTransforms();
             }
-            
+
             blockView.transform.SetAsLastSibling();
             blockView.GetDraggableBlockController().SetDragType(DragType.Move);
-            
+
             if (!m_ActiveBlocks.Contains(blockView))
             {
                 m_ActiveBlocks.Add(blockView);
                 Debug.Log($"TowerController: Added block to active blocks. Total count: {m_ActiveBlocks.Count}");
             }
-            
+
             SaveCurrentTowerState();
             Canvas.ForceUpdateCanvases();
 
@@ -189,67 +186,68 @@ namespace Core.Tower.External
         private void PlaceBlockDirectly(BlockView blockView, Vector3 targetPosition)
         {
             blockView.transform.position = targetPosition;
-            
+
             RectTransform blockRect = blockView.GetRectTransform();
             if (blockRect != null)
             {
                 blockRect.ForceUpdateRectTransforms();
             }
-            
+
             blockView.transform.SetAsLastSibling();
             blockView.GetDraggableBlockController().SetDragType(DragType.Move);
-            
+
             if (!m_ActiveBlocks.Contains(blockView))
             {
                 m_ActiveBlocks.Add(blockView);
                 Debug.Log($"TowerController: Added block to active blocks. Total count: {m_ActiveBlocks.Count}");
             }
-            
+
             SaveCurrentTowerState();
             Canvas.ForceUpdateCanvases();
 
             Debug.Log($"TowerController: Successfully placed block {blockView.GetColorName()} at {targetPosition}");
         }
 
-        private bool TryFindPlacementAboveTopBlock(BlockView blockView, Vector3 desiredPosition, out Vector3 placementPosition)
+        private bool TryFindPlacementAboveTopBlockWithOffset(BlockView blockView, Vector3 desiredPosition,
+            out Vector3 placementPosition)
         {
             placementPosition = desiredPosition;
             
             BlockView topBlock = null;
             float highestY = float.MinValue;
-            
+
             foreach (var existingBlock in m_ActiveBlocks.Where(block => block != null))
             {
                 RectTransform existingRect = existingBlock.GetRectTransform();
                 Vector3[] existingCorners = new Vector3[4];
                 existingRect.GetWorldCorners(existingCorners);
-                
-                float existingTopY = existingCorners[2].y;
-                
+
+                float existingTopY = existingCorners[2].y; // Верхний край блока
+
                 if (existingTopY > highestY)
                 {
                     highestY = existingTopY;
                     topBlock = existingBlock;
                 }
             }
-            
+
             if (topBlock == null)
             {
                 Debug.LogError("TowerController: No top block found, but active blocks list is not empty");
                 return false;
             }
-            
+
             Debug.Log($"TowerController: Found top block {topBlock.GetColorName()} at Y: {highestY}");
             
             Vector3 originalPosition = blockView.transform.position;
             blockView.transform.position = desiredPosition;
-            
+
             RectTransform blockRect = blockView.GetRectTransform();
             blockRect.ForceUpdateRectTransforms();
-            
+
             Vector3[] blockCorners = new Vector3[4];
             blockRect.GetWorldCorners(blockCorners);
-            
+
             float blockHeight = blockCorners[2].y - blockCorners[0].y;
             
             blockView.transform.position = originalPosition;
@@ -257,25 +255,85 @@ namespace Core.Tower.External
             RectTransform topBlockRect = topBlock.GetRectTransform();
             Vector3[] topBlockCorners = new Vector3[4];
             topBlockRect.GetWorldCorners(topBlockCorners);
-            
+
             float topBlockMinX = topBlockCorners[0].x;
             float topBlockMaxX = topBlockCorners[2].x;
+            float topBlockCenterX = (topBlockMinX + topBlockMaxX) / 2;
+
             float blockMinX = blockCorners[0].x;
             float blockMaxX = blockCorners[2].x;
             
             bool hasXOverlap = (blockMinX <= topBlockMaxX && blockMaxX >= topBlockMinX);
-            
+
             if (!hasXOverlap)
             {
-                Debug.LogWarning($"TowerController: Block {blockView.GetColorName()} does not overlap with top block {topBlock.GetColorName()} by X coordinate");
+                Debug.LogWarning(
+                    $"TowerController: Block {blockView.GetColorName()} does not overlap with top block {topBlock.GetColorName()} by X coordinate");
                 return false;
             }
             
-            placementPosition = new Vector3(desiredPosition.x, highestY + blockHeight / 2, desiredPosition.z);
+            float randomOffset = CalculateRandomOffsetWithLimits(topBlock);
             
-            Debug.Log($"TowerController: Calculated placement position above top block {topBlock.GetColorName()}: {placementPosition}");
+            Vector3 basePosition = new Vector3(topBlockCenterX + randomOffset, highestY + blockHeight / 2,
+                desiredPosition.z);
+
+            Debug.Log($"TowerController: Calculated placement position with offset {randomOffset}: {basePosition}");
             
-            return IsBlockInTowerArea(blockView, placementPosition);
+            if (!IsBlockInTowerArea(blockView, basePosition))
+            {
+                Debug.LogWarning(
+                    $"TowerController: Block with offset would be outside tower area, trying without offset");
+                
+                basePosition = new Vector3(topBlockCenterX, highestY + blockHeight / 2, desiredPosition.z);
+                if (!IsBlockInTowerArea(blockView, basePosition))
+                {
+                    return false;
+                }
+            }
+
+            placementPosition = basePosition;
+            return true;
+        }
+
+        private float CalculateRandomOffsetWithLimits(BlockView topBlock)
+        {
+            RectTransform topRect = topBlock.GetRectTransform();
+            RectTransform baseRect = m_ActiveBlocks[0].GetRectTransform();
+
+            Vector3[] topCorners = new Vector3[4];
+            topRect.GetWorldCorners(topCorners);
+            float topLeftX = topCorners[0].x;
+            float topRightX = topCorners[2].x;
+            float topWidth = topRightX - topLeftX;
+            float topCenterX = (topLeftX + topRightX) / 2f;
+
+            Vector3[] baseCorners = new Vector3[4];
+            baseRect.GetWorldCorners(baseCorners);
+            float baseLeftX = baseCorners[0].x;
+            float baseRightX = baseCorners[2].x;
+            float baseWidth = baseRightX - baseLeftX;
+            float baseCenterX = (baseLeftX + baseRightX) / 2f;
+            
+            float topRangeLeft = topCenterX - (topWidth * 0.5f);
+            float topRangeRight = topCenterX + (topWidth * 0.5f);
+
+            float baseRangeLeft = baseCenterX - (baseWidth * 0.5f);
+            float baseRangeRight = baseCenterX + (baseWidth * 0.5f);
+            
+            float intersectionLeft = Mathf.Max(topRangeLeft, baseRangeLeft);
+            float intersectionRight = Mathf.Min(topRangeRight, baseRangeRight);
+            
+            if (intersectionLeft >= intersectionRight)
+            {
+                Debug.LogWarning($"TowerOffsetDebug: No intersection found. Using 0 offset.");
+                return 0f;
+            }
+            
+            float chosenCenterX = Random.Range(intersectionLeft, intersectionRight);
+            
+            float offsetFromTop = chosenCenterX - topCenterX;
+            
+            return offsetFromTop;
         }
 
         private void SaveCurrentTowerState()
@@ -285,19 +343,20 @@ namespace Core.Tower.External
             var validBlocks = m_ActiveBlocks.Where(block => block != null).ToList();
             m_ActiveBlocks.Clear();
             m_ActiveBlocks.AddRange(validBlocks);
-            
+
             for (int i = 0; i < m_ActiveBlocks.Count; i++)
             {
                 var blockView = m_ActiveBlocks[i];
-                
+
                 var blockData = new TowerBlockData(
                     blockView.GetId(),
                     blockView.transform.position,
                     i
                 );
-                
+
                 m_SaveData.TowerBlocks.Add(blockData);
-                Debug.Log($"TowerController: Saved block {blockView.GetColorName()} (layer {i}) at position {blockView.transform.position}");
+                Debug.Log(
+                    $"TowerController: Saved block {blockView.GetColorName()} (layer {i}) at position {blockView.transform.position}");
             }
 
             Debug.Log($"TowerController: Saved {m_SaveData.TowerBlocks.Count} blocks to save data");
@@ -313,9 +372,9 @@ namespace Core.Tower.External
         public void LoadTowerState()
         {
             Debug.Log($"TowerController: Loading tower state with {m_SaveData.TowerBlocks.Count} blocks");
-            
+
             ClearCurrentBlocks();
-            
+
             var coreView = m_CoreUIController.GetCoreView();
             var towerParent = coreView.DraggingBlockView;
 
@@ -326,25 +385,26 @@ namespace Core.Tower.External
                 if (blockView != null)
                 {
                     Vector3 savedWorldPosition = blockData.GetPosition();
-                    
+
                     blockView.transform.position = savedWorldPosition;
-                    
+
                     RectTransform blockRect = blockView.GetRectTransform();
                     if (blockRect != null)
                     {
                         blockRect.ForceUpdateRectTransforms();
                     }
-                    
+
                     m_ActiveBlocks.Add(blockView);
 
-                    Debug.Log($"TowerController: Restored block Config ID {blockData.BlockId} (layer {blockData.LayerIndex}) at {savedWorldPosition}");
+                    Debug.Log(
+                        $"TowerController: Restored block Config ID {blockData.BlockId} (layer {blockData.LayerIndex}) at {savedWorldPosition}");
                 }
                 else
                 {
                     Debug.LogError($"TowerController: Failed to create block with Config ID {blockData.BlockId}");
                 }
             }
-            
+
             Canvas.ForceUpdateCanvases();
             Debug.Log($"TowerController: Successfully loaded {m_ActiveBlocks.Count} blocks");
         }
@@ -369,10 +429,11 @@ namespace Core.Tower.External
             }
             
             int removedBlockIndex = m_ActiveBlocks.IndexOf(blockView);
-            
+
             if (removedBlockIndex == -1)
             {
-                Debug.LogWarning($"TowerController: Block {blockView.GetColorName()} was not found in active blocks list");
+                Debug.LogWarning(
+                    $"TowerController: Block {blockView.GetColorName()} was not found in active blocks list");
                 
                 int removedNulls = m_ActiveBlocks.RemoveAll(block => block == null);
                 if (removedNulls > 0)
@@ -380,6 +441,7 @@ namespace Core.Tower.External
                     Debug.Log($"TowerController: Cleaned up {removedNulls} null blocks from active list");
                     SaveCurrentTowerState();
                 }
+
                 return;
             }
 
@@ -410,29 +472,28 @@ namespace Core.Tower.External
             for (int i = startIndex; i < m_ActiveBlocks.Count; i++)
             {
                 var blockToMove = m_ActiveBlocks[i];
-                
+
                 if (blockToMove == null) continue;
 
                 blocksToAnimate.Add(blockToMove.gameObject);
                 
                 Vector3 newPosition = CalculateNewPositionForBlock(blockToMove, baseY);
                 targetPositions.Add(newPosition);
-                
-                Debug.Log($"TowerController: Block {blockToMove.GetColorName()} will move to {newPosition} (new layer {i})");
+
+                Debug.Log(
+                    $"TowerController: Block {blockToMove.GetColorName()} will move to {newPosition} (new layer {i})");
                 
                 RectTransform blockRect = blockToMove.GetRectTransform();
                 Vector3[] corners = new Vector3[4];
                 blockRect.GetWorldCorners(corners);
                 float blockHeight = corners[2].y - corners[0].y;
-                baseY = newPosition.y + blockHeight / 2;
+                baseY = newPosition.y + blockHeight / 2; // Верх блока после перемещения
             }
             
             if (blocksToAnimate.Count > 0)
             {
-                m_CollapseAnimation.StartCollapseAnimation(blocksToAnimate, targetPositions, () =>
-                {
-                    OnCollapseAnimationComplete();
-                });
+                m_CollapseAnimation.StartCollapseAnimation(blocksToAnimate, targetPositions,
+                    () => { OnCollapseAnimationComplete(); });
             }
             else
             {
@@ -455,7 +516,7 @@ namespace Core.Tower.External
 
             Canvas.ForceUpdateCanvases();
             SaveCurrentTowerState();
-            
+
             Debug.Log($"TowerController: Completed animated collapse. Remaining blocks: {m_ActiveBlocks.Count}");
         }
 
@@ -465,10 +526,10 @@ namespace Core.Tower.External
             {
                 var coreView = m_CoreUIController.GetCoreView();
                 RectTransform towerRect = coreView.TowerView.Tower;
-                
+
                 Vector3[] towerCorners = new Vector3[4];
                 towerRect.GetWorldCorners(towerCorners);
-                
+
                 float towerBottomY = towerCorners[0].y;
                 Debug.Log($"TowerController: Base Y for first block: {towerBottomY}");
                 return towerBottomY;
@@ -476,10 +537,10 @@ namespace Core.Tower.External
             
             var previousBlock = m_ActiveBlocks[index - 1];
             RectTransform previousRect = previousBlock.GetRectTransform();
-            
+
             Vector3[] previousCorners = new Vector3[4];
             previousRect.GetWorldCorners(previousCorners);
-            
+
             float previousTopY = previousCorners[2].y;
             Debug.Log($"TowerController: Base Y from previous block {previousBlock.GetColorName()}: {previousTopY}");
             return previousTopY;
@@ -490,12 +551,12 @@ namespace Core.Tower.External
             RectTransform blockRect = blockView.GetRectTransform();
             Vector3[] blockCorners = new Vector3[4];
             blockRect.GetWorldCorners(blockCorners);
-            
+
             float blockHeight = blockCorners[2].y - blockCorners[0].y;
             
             Vector3 currentPosition = blockView.transform.position;
             Vector3 newPosition = new Vector3(currentPosition.x, baseY + blockHeight / 2, currentPosition.z);
-            
+
             return newPosition;
         }
     }
