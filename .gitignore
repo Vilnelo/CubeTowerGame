@@ -75,18 +75,6 @@ Thumbs.db
 *.vsconfig
 
 ###
-# Package Manager
-###
-[Pp]ackages/
-!/Packages/manifest.json
-!/Packages/packages-lock.json
-
-###
-# Zenject
-###
-/[Aa]ssets/Plugins/Zenject.meta
-
-###
 # Development
 ###
 TODO.md
