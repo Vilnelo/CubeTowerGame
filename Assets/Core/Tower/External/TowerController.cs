@@ -476,6 +476,13 @@ namespace Core.Tower.External
                 return;
             }
             
+            // НОВАЯ ПРОВЕРКА: Не разрешаем удалять блоки во время коллапс анимации
+            if (m_IsCollapseAnimationPlaying)
+            {
+                Debug.Log("TowerController: Cannot remove block from tower - collapse animation is playing");
+                return;
+            }
+            
             int removedBlockIndex = m_ActiveBlocks.IndexOf(blockView);
 
             if (removedBlockIndex == -1)
