@@ -161,6 +161,27 @@ namespace Core.DragAndDrop.External
             {
                 return;
             }
+    
+            var draggable = blockView.GetDraggableBlockController();
+            var dragBehavior = draggable.GetDragBehavior();
+            
+            if (dragBehavior == DragType.Move && m_TowerController.IsAnyAnimationPlaying())
+            {
+                Debug.Log("DragAndDropSystem: Cannot pick up block - tower animation is playing");
+                return;
+            }
+            
+            if (IsAnyDestructionAnimationPlaying())
+            {
+                Debug.Log("DragAndDropSystem: Cannot pick up block - destruction animation is playing");
+                return;
+            }
+            
+            if (IsAnyPickupAnimationPlaying())
+            {
+                Debug.Log("DragAndDropSystem: Cannot pick up block - pickup animation is playing");
+                return;
+            }
 
             if (m_CurrentBlockView != null && m_CurrentBlockView != blockView)
             {
@@ -169,21 +190,18 @@ namespace Core.DragAndDrop.External
             }
 
             var animation = GetOrCreateAnimation(blockView);
-            
+    
             if (animation.IsAnimating())
             {
                 Debug.Log("DragAndDropSystem: Animation in progress - ignoring click");
                 return;
             }
-            
+    
             if (!animation.IsAtReferenceScale())
             {
                 Debug.Log("DragAndDropSystem: Block not at reference scale - ignoring click");
                 return;
             }
-
-            var draggable = blockView.GetDraggableBlockController();
-            var dragBehavior = draggable.GetDragBehavior();
 
             if (dragBehavior == DragType.Destroying)
             {
@@ -496,6 +514,30 @@ namespace Core.DragAndDrop.External
                 ScrollEvents.RequestUnblockScroll();
                 ResetDragState();
             }
+        }
+        
+        private bool IsAnyDestructionAnimationPlaying()
+        {
+            foreach (var destructionAnimation in m_DestructionAnimations.Values)
+            {
+                if (destructionAnimation.IsAnimating())
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        private bool IsAnyPickupAnimationPlaying()
+        {
+            foreach (var pickupAnimation in m_BlockAnimations.Values)
+            {
+                if (pickupAnimation.IsAnimating())
+                {
+                    return true;
+                }
+            }
+            return false;
         }
         
         private void OnAnimationCompleteForTowerPlacement(Vector3 towerPlacementPosition)

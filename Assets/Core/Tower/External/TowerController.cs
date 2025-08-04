@@ -30,6 +30,8 @@ namespace Core.Tower.External
         private TowerCollapseAnimation m_CollapseAnimation;
         
         private bool m_IsCollapseAnimationPlaying = false;
+        private bool m_IsJumpAnimationPlaying = false;
+        private BlockView m_BlockBeingMoved = null;
 
         public void Initialize()
         {
@@ -81,6 +83,11 @@ namespace Core.Tower.External
                       $"Completely inside: {isCompletelyInside}");
 
             return isCompletelyInside;
+        }
+        
+        public bool IsAnyAnimationPlaying()
+        {
+            return m_IsCollapseAnimationPlaying || m_IsJumpAnimationPlaying;
         }
 
         public bool CanPlaceBlockInTower(BlockView blockView, Vector3 position)
@@ -157,6 +164,8 @@ namespace Core.Tower.External
 
         private void PlaceBlockWithAnimation(BlockView blockView, Vector3 targetPosition)
         {
+            m_IsJumpAnimationPlaying = true;
+            
             Canvas canvas = m_MainCanvas.GetCanvas();
 
             if (canvas == null)
@@ -197,6 +206,7 @@ namespace Core.Tower.External
             Canvas.ForceUpdateCanvases();
 
             Debug.Log($"TowerController: Successfully placed block {blockView.GetColorName()} at {finalPosition}");
+            m_IsJumpAnimationPlaying = false;
         }
 
         private void PlaceBlockDirectly(BlockView blockView, Vector3 targetPosition)
@@ -476,7 +486,6 @@ namespace Core.Tower.External
                 return;
             }
             
-            // НОВАЯ ПРОВЕРКА: Не разрешаем удалять блоки во время коллапс анимации
             if (m_IsCollapseAnimationPlaying)
             {
                 Debug.Log("TowerController: Cannot remove block from tower - collapse animation is playing");
