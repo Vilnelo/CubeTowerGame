@@ -53,6 +53,7 @@ namespace Core.DragAndDrop.External
                 m_IsWaiting = false;
                 Debug.Log("PickupTimer: Timer completed");
             }
+
             m_Timer.StopTimer();
         }
     }

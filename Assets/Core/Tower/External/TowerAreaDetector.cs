@@ -19,10 +19,10 @@ namespace Core.Tower.External
                 Debug.LogError("TowerAreaDetector: TowerArea or Block rect is null");
                 return false;
             }
-            
+
             Vector3[] towerCorners = new Vector3[4];
             m_TowerAreaRect.GetWorldCorners(towerCorners);
-            
+
             Vector3[] blockCorners = new Vector3[4];
             blockRect.GetWorldCorners(blockCorners);
 
@@ -30,14 +30,14 @@ namespace Core.Tower.External
             float towerRight = towerCorners[2].x;
             float towerBottom = towerCorners[0].y;
             float towerTop = towerCorners[2].y;
-            
+
             for (int i = 0; i < blockCorners.Length; i++)
             {
                 Vector3 corner = blockCorners[i];
-                
+
                 bool isInsideHorizontally = corner.x >= towerLeft && corner.x <= towerRight;
                 bool isInsideVertically = corner.y >= towerBottom && corner.y <= towerTop;
-                
+
                 if (!isInsideHorizontally || !isInsideVertically)
                 {
                     Debug.Log($"TowerAreaDetector: Corner {i} is outside tower area");

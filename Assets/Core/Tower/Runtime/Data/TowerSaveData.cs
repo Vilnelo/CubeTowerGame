@@ -8,7 +8,7 @@ namespace Core.Tower.Runtime.Data
     public class TowerSaveData : ISaveData
     {
         public List<TowerBlockData> TowerBlocks = new List<TowerBlockData>();
-        
+
         public string GetSaveKey()
         {
             return "TowerData";

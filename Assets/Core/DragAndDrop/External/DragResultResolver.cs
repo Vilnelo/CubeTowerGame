@@ -27,7 +27,7 @@ namespace Core.DragAndDrop.External
             };
 
             var blockRect = blockView.GetRectTransform();
-        
+
             if (blockRect != null && m_TrashHoleController.IsBlockTouchingHole(blockRect))
             {
                 result.ResultType = DragResultType.TrashDestruction;

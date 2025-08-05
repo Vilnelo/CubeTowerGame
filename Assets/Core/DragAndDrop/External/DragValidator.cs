@@ -27,7 +27,7 @@ namespace Core.DragAndDrop.External
                 return false;
             }
 
-            if (m_AnimationChecker.IsAnyDestructionAnimationPlaying() || 
+            if (m_AnimationChecker.IsAnyDestructionAnimationPlaying() ||
                 m_AnimationChecker.IsAnyPickupAnimationPlaying())
             {
                 Debug.Log("Cannot pick up block - animation is playing");

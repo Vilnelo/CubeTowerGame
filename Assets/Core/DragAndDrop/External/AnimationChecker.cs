@@ -28,6 +28,7 @@ namespace Core.DragAndDrop.External
                     return true;
                 }
             }
+
             return false;
         }
 
@@ -40,6 +41,7 @@ namespace Core.DragAndDrop.External
                     return true;
                 }
             }
+
             return false;
         }
     }
