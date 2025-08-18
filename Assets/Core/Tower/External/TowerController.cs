@@ -1,12 +1,8 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using Core.Animations.External;
-using Core.Animations.External.PopupText.External;
+﻿using Common.Canvases.External;
+using Common.TimerSystem.External.Interfaces;
+using Common.TimerSystem.External.Samples;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
-using Core.Canvases.Runtime;
-using Core.DragAndDrop.Runtime;
-using Core.Localization.Runtime;
 using Core.SaveSystem.Runtime;
 using Core.Tower.Runtime;
 using Core.Tower.Runtime.Data;
@@ -22,6 +18,7 @@ namespace Core.Tower.External
         [Inject] private IAutoSaveController m_SaveController;
         [Inject] private IBlockFactoryController m_BlockFactoryController;
         [Inject] private IMainCanvas m_MainCanvas;
+        [Inject] private ITimerController m_TimerController;
 
         private TowerState m_TowerState;
         private TowerAreaDetector m_AreaDetector;

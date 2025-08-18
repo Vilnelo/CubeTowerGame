@@ -1,60 +1,83 @@
-﻿using UnityEngine;
-using Utils.SimpleTimerSystem.External;
-using Utils.SimpleTimerSystem.Runtime;
+﻿using System;
+using Common.TimerSystem.External;
+using Common.TimerSystem.External.Interfaces;
+using Common.TimerSystem.External.Models;
+using UniRx;
+using UnityEngine;
 
 namespace Core.DragAndDrop.External
 {
-    public class PickupTimer
+    public class PickupTimer : IDisposable
     {
-        private readonly SimpleTimerWrapper m_Timer;
+        private readonly ITimerController m_TimerController;
         private readonly float m_DelayTime = 0.3f;
-        private bool m_IsWaiting;
+        private CompositeDisposable m_TimerDisposables;
+        
+        private SimpleTimerWrapper m_Timer;
 
         public event System.Action OnTimerComplete;
 
         public PickupTimer(ITimerController timerController)
         {
-            m_Timer = new SimpleTimerWrapper(
-                timerController,
-                m_DelayTime,
-                OnTimerTick,
-                OnTimerCompleted
-            );
+            m_TimerController = timerController;
         }
 
         public void StartTimer()
         {
-            m_Timer.StopTimer();
-            m_Timer.ResetTimer();
+            StopTimer();
+            
+            m_TimerDisposables = new CompositeDisposable();
+            
+            m_Timer = new SimpleTimerWrapper(m_TimerController, m_DelayTime);
+            
+            m_Timer.OnTick
+                .Sample(TimeSpan.FromSeconds(0.5f))
+                .Subscribe(OnTimerTick)
+                .AddTo(m_TimerDisposables);
+            
+            m_Timer.OnCompleted
+                .Subscribe(OnTimerCompleted)
+                .AddTo(m_TimerDisposables);
+            
             m_Timer.StartTimer();
-            m_IsWaiting = true;
+            
             Debug.Log("PickupTimer: Timer started");
         }
 
         public void StopTimer()
         {
-            m_Timer.StopTimer();
-            m_IsWaiting = false;
+            if (m_Timer != null)
+            {
+                m_Timer.Dispose();
+                m_Timer = null;
+            }
+            
+            if (m_TimerDisposables != null)
+            {
+                m_TimerDisposables.Dispose();
+                m_TimerDisposables = null;
+            }
+            
             Debug.Log("PickupTimer: Timer stopped");
         }
 
-        public bool IsWaiting => m_IsWaiting;
-
         private void OnTimerTick(SimpleTimerInfo timerInfo)
         {
-            // Do nothing
+            Debug.LogError($"PickupTimer: Timer ticked - {timerInfo.TimeLeft:F1}s left");
         }
 
-        private void OnTimerCompleted(SimpleTimerInfo timerInfo)
+        private void OnTimerCompleted(ISimpleTimer timer)
         {
-            if (m_IsWaiting)
-            {
-                OnTimerComplete?.Invoke();
-                m_IsWaiting = false;
-                Debug.Log("PickupTimer: Timer completed");
-            }
+            Debug.Log("PickupTimer: Timer completed");
+            
+            OnTimerComplete?.Invoke();
+            
+            StopTimer();
+        }
 
-            m_Timer.StopTimer();
+        public void Dispose()
+        {
+            StopTimer();
         }
     }
 }

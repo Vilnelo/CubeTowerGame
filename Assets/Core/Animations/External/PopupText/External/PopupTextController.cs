@@ -1,5 +1,5 @@
 ﻿using System;
-using Core.AssetManagement.Runtime;
+using Common.AssetManagement.External;
 using Core.UI.Runtime;
 using UnityEngine;
 using Zenject;

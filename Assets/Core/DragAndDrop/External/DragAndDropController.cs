@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using Common.TimerSystem.External;
+using Common.TimerSystem.External.Interfaces;
 using Core.Animations.External.PopupText.External;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
@@ -11,7 +13,6 @@ using Core.TrashHole.Runtime;
 using Core.UI.Runtime;
 using UnityEngine;
 using UnityEngine.EventSystems;
-using Utils.SimpleTimerSystem.Runtime;
 using Zenject;
 
 namespace Core.DragAndDrop.External
@@ -342,6 +343,7 @@ namespace Core.DragAndDrop.External
             }
 
             m_AnimationManager?.Dispose();
+            m_PickupTimer?.Dispose();
         }
     }
 }

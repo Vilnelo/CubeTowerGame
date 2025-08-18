@@ -1,15 +1,13 @@
-using Core.AssetManagement.External;
-using Core.AssetManagement.Runtime;
-using Core.ConfigSystem.External;
-using Core.ConfigSystem.Runtime;
+using Common.AssetManagement.External;
+using Common.ConfigSystem.External;
+using Common.ConfigSystem.Runtime;
+using Common.TimerSystem.External;
+using Common.TimerSystem.External.Interfaces;
 using Core.Localization.External;
-using Core.Localization.Runtime;
 using Core.SaveSystem.External;
 using Core.Scene.External;
 using Core.Scene.Runtime;
 using UnityEngine;
-using Utils.SimpleTimerSystem.External;
-using Utils.SimpleTimerSystem.Runtime;
 using Zenject;
 
 namespace Core.Installers
@@ -64,7 +62,9 @@ namespace Core.Installers
         {
             Container.Bind<IAssetLoader>()
                 .To<AssetLoader>()
-                .AsSingle();
+                .FromNewComponentOnNewGameObject()
+                .AsSingle()
+                .NonLazy();
 
             LogDebug("AssetLoader bound successfully");
         }

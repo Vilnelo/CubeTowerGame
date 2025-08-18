@@ -1,5 +1,5 @@
-﻿using Core.AssetManagement.Runtime;
-using Core.Canvases.Runtime;
+﻿using Common.AssetManagement.External;
+using Common.Canvases.External;
 using Core.UI.Runtime;
 using UnityEngine;
 using Zenject;

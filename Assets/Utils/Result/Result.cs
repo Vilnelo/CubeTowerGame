@@ -20,31 +20,5 @@
         {
             return new Result<T>(default, false);
         }
-
-        public bool Equals(Result<T> other)
-        {
-            return this.IsExist == other.IsExist &&
-                   (IsExist == false || this.Object.Equals(other.Object));
-        }
-
-        public override bool Equals(object other)
-        {
-            if (!(other is Result<T>))
-            {
-                return false;
-            }
-
-            return Equals((Result<T>)other);
-        }
-
-        public override string ToString()
-        {
-            return !IsExist ? "Empty result" : Object.ToString();
-        }
-
-        public override int GetHashCode()
-        {
-            return !IsExist ? 0 : Object.GetHashCode();
-        }
     }
 }

@@ -1,7 +1,7 @@
+using Common.Canvases.External;
 using Core.Animations.External.PopupText.External;
 using Core.BottomBlocks.External;
 using Core.BottomBlocks.Runtime;
-using Core.Canvases.External;
 using Core.DragAndDrop.External;
 using Core.InputSystem.External;
 using Core.Tower.External;

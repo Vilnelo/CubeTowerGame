@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using Core.AssetManagement.Runtime;
+using Common.AssetManagement.External;
 using Core.Localization.Runtime;
 using UnityEngine;
 using Zenject;
